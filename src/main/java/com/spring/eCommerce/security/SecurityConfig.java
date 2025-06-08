@@ -1,5 +1,6 @@
 package com.spring.eCommerce.security;
 
+import com.spring.eCommerce.exception.CustomAccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,9 @@ public class SecurityConfig {
     @Autowired
     private JwtUnAuthResponse jwtUnAuthResponse;
 
+    @Autowired
+    private CustomAccessDeniedHandler accessDeniedHandler;  // أضفها هنا
+
     @Bean
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -36,6 +40,7 @@ public class SecurityConfig {
 
         return new ProviderManager(authProvider);
     }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -48,16 +53,22 @@ public class SecurityConfig {
                                 "/configuration/**",
                                 "/webjars/**",
                                 "/api/auth/login",
-                                "/api/auth/logout"
+                                "/api/auth/logout",
+                                "/api/auth/refresh",
+                                "/api/auth/registerUser"
+
                         ).permitAll()
+                        .requestMatchers("/api/auth/registerAdmin").hasAuthority("admin")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtUnAuthResponse))
+                .exceptionHandling(ex -> ex.accessDeniedHandler(accessDeniedHandler))
                 .csrf(csrf -> csrf.disable())
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
     @Bean
     public SecurityContextHolderAwareRequestFilter securityContextHolderAwareRequestFilter() {
         return new SecurityContextHolderAwareRequestFilter();

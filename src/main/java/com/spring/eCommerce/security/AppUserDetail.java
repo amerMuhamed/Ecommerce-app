@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 @Getter
 @Setter
 public class AppUserDetail implements UserDetails {
@@ -17,23 +18,24 @@ public class AppUserDetail implements UserDetails {
     private String username;
     private String password;
     private String fullName;
-private List<GrantedAuthority> authorities;
+    private List<GrantedAuthority> authorities;
+
     public AppUserDetail() {
     }
 
     public AppUserDetail(AppUser appUser) {
-    super();
-        this.id=appUser.getId();
-    this.fullName=appUser.getFullName();
-    this.username=appUser.getUsername();
-    this.password=appUser.getPassword();
+        super();
+        this.id = appUser.getId();
+        this.fullName = appUser.getFullName();
+        this.username = appUser.getUsername();
+        this.password = appUser.getPassword();
         List<GrantedAuthority> authorities = new ArrayList<>();
         if (!appUser.getRoles().isEmpty()) {
             appUser.getRoles().forEach(role -> {
                 authorities.add(new SimpleGrantedAuthority(role.getName()));
             });
         }
-
+this.authorities=authorities;
     }
 
     @Override

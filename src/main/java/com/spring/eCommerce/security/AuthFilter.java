@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Set;
 
 @Log4j2
 @Component
@@ -33,12 +34,20 @@ public class AuthFilter extends OncePerRequestFilter {
     private TokenInfoService tokenInfoService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        Set<String> openPaths = Set.of(
+                "/api/auth/login",
+                "/api/auth/logout",
+                "/api/auth/refresh",
+                "/api/auth/registerUser",
+                "/swagger-ui",
+                "/v3/api-docs",
+                "/swagger-resources",
+                "/webjars"
+        );
+
         String path = request.getRequestURI();
-        if (path.startsWith("/api/auth")
-                || path.startsWith("/swagger-ui")
-                || path.startsWith("/v3/api-docs")
-                || path.startsWith("/swagger-resources")
-                || path.startsWith("/webjars")) {
+
+        if (openPaths.stream().anyMatch(path::startsWith)) {
             filterChain.doFilter(request, response);
             return;
         }

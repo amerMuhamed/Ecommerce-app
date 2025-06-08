@@ -18,5 +18,4 @@ public class AppUserDetailsService implements UserDetailsService {
 
         return new AppUserDetail(user);
     }
-
 }
