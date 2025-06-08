@@ -2,7 +2,9 @@ package com.spring.eCommerce.service;
 
 import com.spring.eCommerce.dto.JWTResponse;
 import com.spring.eCommerce.entity.AppUser;
+import com.spring.eCommerce.entity.Role;
 import com.spring.eCommerce.entity.TokenInfo;
+import com.spring.eCommerce.repository.RoleRepo;
 import com.spring.eCommerce.security.AppUserDetail;
 import com.spring.eCommerce.security.JwtTokenUtils;
 import com.spring.eCommerce.service.token.TokenInfoService;
@@ -17,9 +19,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -42,6 +46,9 @@ public class AuthService {
     @Autowired
     private final UserService userService;
 
+    @Autowired
+    private final RoleRepo roleRepo;
+
     public JWTResponse login(String login, String password) {
         Authentication authentication = auth.authenticate(
                 new UsernamePasswordAuthenticationToken(login, password)
@@ -54,8 +61,6 @@ public class AuthService {
         TokenInfo tokenInfo = createLoginToken(appUserDetail);
         return JWTResponse.builder().accessToken(tokenInfo.getAccessToken()).refreshToken(tokenInfo.getRefreshToken()).build();
     }
-
-
 
     public TokenInfo createLoginToken(AppUserDetail appUser) {
         String userAgent = request.getHeader(HttpHeaders.USER_AGENT);
@@ -86,27 +91,51 @@ public class AuthService {
     }
 
     public JWTResponse refreshAccessToken(String refreshToken) {
-     if(jwtTokenUtils.isTokenExpired(refreshToken)){
-         return null;
-     }
-     String username = jwtTokenUtils.getUsernameFromToken(refreshToken);
+        if (jwtTokenUtils.isTokenExpired(refreshToken)) {
+            return null;
+        }
+        String username = jwtTokenUtils.getUsernameFromToken(refreshToken);
         TokenInfo tokenInfoOptional = tokenInfoService.findByRefreshToken(refreshToken);
-     if(tokenInfoOptional==null){
-         return null;
-     }
-     return new JWTResponse (jwtTokenUtils.generateToken(username,UUID.randomUUID().toString(), false),refreshToken);
+        if (tokenInfoOptional == null) {
+            return null;
+        }
+        return new JWTResponse(jwtTokenUtils.generateToken(username, UUID.randomUUID().toString(), false), refreshToken);
 
     }
-public void logout(String refreshToken) {
-    System.out.println("Refresh token from request: " + refreshToken);
-    TokenInfo tokenInfo = tokenInfoService.findByRefreshToken(refreshToken);
-    if (tokenInfo != null) {
-        System.out.println("Found token in DB, deleting...");
-        tokenInfoService.deleteById(tokenInfo.getId());
-    } else {
-        System.out.println("Token not found in DB!");
+
+    public void logout(String refreshToken) {
+        System.out.println("Refresh token from request: " + refreshToken);
+        TokenInfo tokenInfo = tokenInfoService.findByRefreshToken(refreshToken);
+        if (tokenInfo != null) {
+            System.out.println("Found token in DB, deleting...");
+            tokenInfoService.deleteById(tokenInfo.getId());
+        } else {
+            System.out.println("Token not found in DB!");
+        }
     }
-}
+@Transactional
+    public void registerAsUser(AppUser appUser) {
+        Role userRole = roleRepo.findByName("user")
+                .orElseGet(() -> {
+                    Role newRole = new Role(null, "user");
+                    return roleRepo.save(newRole);
+                });
+        appUser.setRoles(Set.of(userRole));
+        userService.save(appUser);
+    }
+    @Transactional
+    public void registerAsAdmin(AppUser appUser) {
+        Role adminRole = roleRepo.findByName("admin")
+                .orElseGet(() -> {
+                    Role newRole = new Role(null, "admin");
+                    return roleRepo.save(newRole);
+                });
+
+
+        appUser.setRoles(Set.of(adminRole));
+        userService.save(appUser);
+    }
+
 
 }
 

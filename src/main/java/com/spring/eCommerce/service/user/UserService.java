@@ -1,5 +1,6 @@
 package com.spring.eCommerce.service.user;
 
+import com.spring.eCommerce.dto.UpdateUserRequest;
 import com.spring.eCommerce.entity.AppUser;
 import com.spring.eCommerce.entity.ProfileImage;
 import com.spring.eCommerce.repository.ProfileImageRepo;
@@ -42,6 +43,24 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepo.save(user);
     }
+    public AppUser updateUser(Long id, UpdateUserRequest request) {
+        AppUser existingUser = userRepo.findById(id).orElseThrow(() ->
+                new IllegalStateException("User not found"));
+
+        if (request.getFullName() != null)
+            existingUser.setFullName(request.getFullName());
+
+        if (request.getUsername() != null)
+            existingUser.setUsername(request.getUsername());
+
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        return userRepo.save(existingUser);
+    }
+
+
 
     public void delete(AppUser user) {
         if (user == null || findByUserName(user.getUsername()) == null) {
