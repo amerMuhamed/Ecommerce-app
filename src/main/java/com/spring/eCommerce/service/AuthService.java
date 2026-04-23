@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -92,35 +93,44 @@ public class AuthService {
 
     public JWTResponse refreshAccessToken(String refreshToken) {
         if (jwtTokenUtils.isTokenExpired(refreshToken)) {
-            return null;
+            throw new RuntimeException("Refresh token expired");
         }
-        String username = jwtTokenUtils.getUsernameFromToken(refreshToken);
-        TokenInfo tokenInfoOptional = tokenInfoService.findByRefreshToken(refreshToken);
-        if (tokenInfoOptional == null) {
-            return null;
-        }
-        return new JWTResponse(jwtTokenUtils.generateToken(username, UUID.randomUUID().toString(), false), refreshToken);
 
+        String username = jwtTokenUtils.getUsernameFromToken(refreshToken);
+
+        TokenInfo tokenInfo = tokenInfoService.findByRefreshToken(refreshToken);
+        if (tokenInfo == null) {
+            throw new RuntimeException("Refresh token not found");
+        }
+
+        String newAccessToken = jwtTokenUtils.generateToken(
+                username,
+                UUID.randomUUID().toString(),
+                false
+        );
+
+        return new JWTResponse(newAccessToken, refreshToken);
     }
 
     public void logout(String refreshToken) {
-        System.out.println("Refresh token from request: " + refreshToken);
+        log.info("Refresh token from request: " + refreshToken);
         TokenInfo tokenInfo = tokenInfoService.findByRefreshToken(refreshToken);
         if (tokenInfo != null) {
-            System.out.println("Found token in DB, deleting...");
+            log.info("Found token in DB, deleting...");
             tokenInfoService.deleteById(tokenInfo.getId());
         } else {
-            System.out.println("Token not found in DB!");
+            log.info("Token not found in DB!");
         }
     }
-@Transactional
+
+    @Transactional
     public void registerAsUser(AppUser appUser) {
         Role userRole = roleRepo.findByName("user")
                 .orElseGet(() -> {
                     Role newRole = new Role(null, "user");
                     return roleRepo.save(newRole);
                 });
-        appUser.setRoles(Set.of(userRole));
+        appUser.setRoles(Collections.singleton(userRole));
         userService.save(appUser);
     }
     @Transactional
@@ -132,7 +142,7 @@ public class AuthService {
                 });
 
 
-        appUser.setRoles(Set.of(adminRole));
+        appUser.setRoles(Collections.singleton(adminRole));
         userService.save(appUser);
     }
 

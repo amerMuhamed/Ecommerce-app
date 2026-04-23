@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.*;
 
 @Log4j2
 @Component
@@ -34,7 +34,7 @@ public class AuthFilter extends OncePerRequestFilter {
     private TokenInfoService tokenInfoService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Set<String> openPaths = Set.of(
+        Set<String> openPaths = new HashSet<>(Arrays.asList(
                 "/api/auth/login",
                 "/api/auth/logout",
                 "/api/auth/refresh",
@@ -43,7 +43,7 @@ public class AuthFilter extends OncePerRequestFilter {
                 "/v3/api-docs",
                 "/swagger-resources",
                 "/webjars"
-        );
+        ));
 
         String path = request.getRequestURI();
 
@@ -70,13 +70,11 @@ public class AuthFilter extends OncePerRequestFilter {
                         log.warn("Token not found in DB, possibly logged out. Rejecting request.");
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         response.setContentType("application/json");
+                        Map<String, String> errorResponse = new HashMap<>();
+                        errorResponse.put("error", "InvalidToken");
+                        errorResponse.put("message", "Token not found or revoked.");
                         response.getWriter().write(
-                                new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(
-                                        java.util.Map.of(
-                                                "error", "InvalidToken",
-                                                "message", "Token not found or revoked."
-                                        )
-                                )
+                                new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(errorResponse)
                         );
                         return;
                     }
@@ -101,26 +99,22 @@ public class AuthFilter extends OncePerRequestFilter {
             log.error("JWT Error: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getClass().getSimpleName());
+            errorResponse.put("message", e.getMessage());
             response.getWriter().write(
-                    new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(
-                            java.util.Map.of(
-                                    "error", e.getClass().getSimpleName(),
-                                    "message", e.getMessage()
-                            )
-                    )
+                    new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(errorResponse)
             );
 
         } catch (Exception e) {
             log.error("Unexpected error: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.setContentType("application/json");
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Server Error");
+            errorResponse.put("message", e.getMessage());
             response.getWriter().write(
-                    new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(
-                            java.util.Map.of(
-                                    "error", "Server Error",
-                                    "message", e.getMessage()
-                            )
-                    )
+                    new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(errorResponse)
             );
         }
     }

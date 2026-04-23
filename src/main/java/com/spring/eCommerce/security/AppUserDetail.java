@@ -24,7 +24,6 @@ public class AppUserDetail implements UserDetails {
     }
 
     public AppUserDetail(AppUser appUser) {
-        super();
         this.id = appUser.getId();
         this.fullName = appUser.getFullName();
         this.username = appUser.getUsername();
@@ -35,7 +34,7 @@ public class AppUserDetail implements UserDetails {
                 authorities.add(new SimpleGrantedAuthority(role.getName()));
             });
         }
-this.authorities=authorities;
+        this.authorities = authorities;
     }
 
     @Override
