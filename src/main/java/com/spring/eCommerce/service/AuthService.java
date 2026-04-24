@@ -84,6 +84,7 @@ public class AuthService {
         if (!jwtTokenUtils.validateToken(refreshToken)) {
             throw new RuntimeException("Invalid token");
         }
+
         if (jwtTokenUtils.isTokenExpired(refreshToken)) {
             throw new TokenException("Refresh token expired");
         }
