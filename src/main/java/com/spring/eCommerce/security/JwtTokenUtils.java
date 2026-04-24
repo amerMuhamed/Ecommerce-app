@@ -1,6 +1,7 @@
 package com.spring.eCommerce.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -10,15 +11,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Calendar;
+import java.security.Key;
 import java.util.Date;
 
 @Slf4j
 @Component
 public class JwtTokenUtils {
-    private static String TOKEN_SECRET;
-    private static Long ACCESS_TOKEN_VALIDITY;
-    private static Long REFRESH_TOKEN_VALIDITY;
+
+    private static final String ISSUER = "app-service";
+    private static final String TOKEN_TYPE = "tokenType";
+    private static final String ACCESS = "access";
+    private static final String REFRESH = "refresh";
 
     @Value("${auth.secret}")
     private String tokenSecret;
@@ -29,32 +32,34 @@ public class JwtTokenUtils {
     @Value("${auth.refresh.expiration}")
     private Long refreshTokenValidity;
 
+    private Key signingKey;
+
     @PostConstruct
     public void init() {
-        TOKEN_SECRET = tokenSecret;
-        ACCESS_TOKEN_VALIDITY = accessTokenValidity;
-        REFRESH_TOKEN_VALIDITY = refreshTokenValidity;
+        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(tokenSecret));
     }
 
-    public static String generateToken(final String username, final String tokenId, boolean isRefresh) {
+    public String generateToken(String username, String tokenId, boolean isRefresh) {
+        Date now = new Date();
+        Date expiration = new Date(
+                System.currentTimeMillis() + (isRefresh ? refreshTokenValidity : accessTokenValidity)
+        );
+
         return Jwts.builder()
                 .setSubject(username)
                 .setId(tokenId)
-                .setIssuedAt(new Date())
-                .setIssuer("app-service")
-                .setExpiration(calculateTokenExpirationDate(isRefresh))
-                .claim("created", Calendar.getInstance().getTime())
-                .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(TOKEN_SECRET)), SignatureAlgorithm.HS512)
+                .setIssuedAt(now)
+                .setIssuer(ISSUER)
+                .setExpiration(expiration)
+                .claim("created", now)
+                .claim(TOKEN_TYPE, isRefresh ? REFRESH : ACCESS)
+                .signWith(signingKey, SignatureAlgorithm.HS512)
                 .compact();
-    }
-
-    private static Date calculateTokenExpirationDate(boolean isRefresh) {
-        return new Date(System.currentTimeMillis() + (isRefresh ? REFRESH_TOKEN_VALIDITY : ACCESS_TOKEN_VALIDITY));
     }
 
     public Claims getClaims(String token) {
         return Jwts.parser()
-                .setSigningKey(TOKEN_SECRET)
+                .setSigningKey(signingKey)
                 .parseClaimsJws(token)
                 .getBody();
     }
@@ -63,52 +68,36 @@ public class JwtTokenUtils {
         return getClaims(token).getSubject();
     }
 
-    public boolean isTokenValid(String token, AppUserDetail user) {
-        String username = getUsernameFromToken(token);
-        return (username.equals(user.getUsername()) && !isTokenExpired(token));
-    }
-
-    public boolean isTokenExpired(String token) {
-        Date expirationDate = getClaims(token).getExpiration();
-        return expirationDate.before(new Date());
-    }
-
     public String getTokenId(String token) {
         return getClaims(token).getId();
     }
-    public boolean validateToken(String token) {
-        // هذه الطريقة سترمي الاستثناءات، وسيتم التقاطها تلقائيًا في GlobalHandling
-        Jwts.parser()
-                .setSigningKey(TOKEN_SECRET)
-                .parseClaimsJws(token);
-        return true;
+
+    public boolean isTokenExpired(String token) {
+        return getClaims(token).getExpiration().before(new Date());
     }
 
-//
-//    public boolean validateToken(String token, HttpServletRequest request) {
-//        {
-//            try {
-//                Jwts.parser().setSigningKey(TOKEN_SECRET).parseClaimsJws(token);
-//                return true;
-//            } catch (SignatureException e) {
-//                log.info("Invalid JWT signature");
-//                throw  new SecurityException("Invalid JWT signature");
-//            }
-//            catch (IllegalArgumentException e) {
-//                log.info("Jwt claims string is empty");
-////                throw new SecurityException("Jwt claims string is empty");
-//            }
-//       catch (ExpiredJwtException e) {
-//            log.info("JWT token is expired");
-//            request.setAttribute("ExpiredJwtException", e.getMessage());
-////    throw new SecurityException("JWT token is expired");
-//        }
-//
-//            catch (Exception e) {
-//                log.info("Invalid JWT token");
-//                request.setAttribute("ExpiredJwtException", e.getMessage());
-//            }
-//              return false;
-//            }
-//        }
+    public boolean isAccessToken(String token) {
+        return ACCESS.equals(getClaims(token).get(TOKEN_TYPE, String.class));
     }
+
+    public boolean isRefreshToken(String token) {
+        return REFRESH.equals(getClaims(token).get(TOKEN_TYPE, String.class));
+    }
+
+    public boolean isTokenValid(String token, AppUserDetail user) {
+        String username = getUsernameFromToken(token);
+        return username.equals(user.getUsername())
+                && !isTokenExpired(token)
+                && isAccessToken(token);
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            getClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("Invalid JWT token: {}", e.getMessage());
+            return false;
+        }
+    }
+}

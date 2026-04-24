@@ -1,15 +1,21 @@
 package com.spring.eCommerce.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spring.eCommerce.dto.ApiResponse;
 import com.spring.eCommerce.entity.TokenInfo;
 import com.spring.eCommerce.service.token.TokenInfoService;
-import com.spring.eCommerce.service.user.UserService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,21 +25,23 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 @Log4j2
 @Component
+@RequiredArgsConstructor
 public class AuthFilter extends OncePerRequestFilter {
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private JwtTokenUtils jwtTokenUtils;
-    @Autowired
-    private UserDetailsService userDetailsService;
-    @Autowired
-    private TokenInfoService tokenInfoService;
+
+    private final JwtTokenUtils jwtTokenUtils;
+    private final UserDetailsService userDetailsService;
+    private final TokenInfoService tokenInfoService;
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
         Set<String> openPaths = new HashSet<>(Arrays.asList(
                 "/api/auth/login",
                 "/api/auth/logout",
@@ -53,7 +61,7 @@ public class AuthFilter extends OncePerRequestFilter {
         }
 
         final String jwtTokenHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        log.info("path is->> " + request.getRequestURI());
+        log.debug("{} {}", request.getMethod(), request.getRequestURI());
         final SecurityContext securityContext = SecurityContextHolder.getContext();
 
         try {
@@ -67,15 +75,9 @@ public class AuthFilter extends OncePerRequestFilter {
                 if (jwtTokenUtils.validateToken(jwtToken)) {
                     TokenInfo tokenInfo = tokenInfoService.findByAccessToken(jwtToken);
                     if (tokenInfo == null) {
-                        log.warn("Token not found in DB, possibly logged out. Rejecting request.");
-                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.setContentType("application/json");
-                        Map<String, String> errorResponse = new HashMap<>();
-                        errorResponse.put("error", "InvalidToken");
-                        errorResponse.put("message", "Token not found or revoked.");
-                        response.getWriter().write(
-                                new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(errorResponse)
-                        );
+                        log.warn("{} {} -> token revoked or not found", request.getMethod(), request.getRequestURI());
+                        writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
+                                new ApiResponse("Unauthorized", HttpServletResponse.SC_UNAUTHORIZED));
                         return;
                     }
                     String username = jwtTokenUtils.getUsernameFromToken(jwtToken);
@@ -93,30 +95,27 @@ public class AuthFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
 
-        } catch (io.jsonwebtoken.ExpiredJwtException | io.jsonwebtoken.MalformedJwtException |
-                 io.jsonwebtoken.SignatureException | IllegalArgumentException e) {
+        } catch (ExpiredJwtException | MalformedJwtException | SignatureException e) {
+            log.warn("{} {} -> jwt rejected: {}", request.getMethod(), request.getRequestURI(), e.getClass().getSimpleName());
+            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
+                    new ApiResponse("Unauthorized", HttpServletResponse.SC_UNAUTHORIZED));
 
-            log.error("JWT Error: {}", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", e.getClass().getSimpleName());
-            errorResponse.put("message", e.getMessage());
-            response.getWriter().write(
-                    new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(errorResponse)
-            );
+        } catch (IllegalArgumentException e) {
+            log.warn("{} {} -> invalid authorization header", request.getMethod(), request.getRequestURI());
+            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
+                    new ApiResponse("Unauthorized", HttpServletResponse.SC_UNAUTHORIZED));
 
         } catch (Exception e) {
-            log.error("Unexpected error: {}", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.setContentType("application/json");
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Server Error");
-            errorResponse.put("message", e.getMessage());
-            response.getWriter().write(
-                    new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(errorResponse)
-            );
+            log.error("{} {} -> unexpected error", request.getMethod(), request.getRequestURI(), e);
+            writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    new ApiResponse("Unexpected server error", HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
         }
+    }
+
+    private void writeJson(HttpServletResponse response, int status, ApiResponse body) throws IOException {
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
     }
 
 }
