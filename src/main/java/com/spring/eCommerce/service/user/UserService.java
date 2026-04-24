@@ -18,7 +18,6 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-
     private final UserRepo userRepo;
     private final ProfileImageRepo profileImageRepo;
     private final PasswordEncoder passwordEncoder;
@@ -54,7 +53,7 @@ public class UserService {
         if (request.getUsername() != null)
             existingUser.setUsername(request.getUsername());
 
-        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
             existingUser.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 

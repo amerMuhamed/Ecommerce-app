@@ -2,6 +2,7 @@ package com.spring.eCommerce.security;
 
 import com.spring.eCommerce.exception.CustomAccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,17 +20,17 @@ import org.springframework.security.web.servletapi.SecurityContextHolderAwareReq
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final UserDetailsService userDetailsService;
-
-    private final PasswordEncoder passwordEncoder;
-     
+    @Autowired
     private final AuthFilter authFilter;
+    @Autowired
+    private UserDetailsService userDetailsService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUnAuthResponse jwtUnAuthResponse;
 
-    private final JwtUnAuthResponse jwtUnAuthResponse;
-
-
-    private final CustomAccessDeniedHandler accessDeniedHandler;
+    @Autowired
+    private CustomAccessDeniedHandler accessDeniedHandler;  // أضفها هنا
 
     @Bean
     public AuthenticationManager authenticationManager() {
@@ -52,6 +53,7 @@ public class SecurityConfig {
                                 "/configuration/**",
                                 "/webjars/**",
                                 "/api/auth/login",
+                                "/api/auth/logout",
                                 "/api/auth/refresh",
                                 "/api/auth/registerUser"
 
@@ -59,10 +61,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/registerAdmin").hasAuthority("admin")
                         .anyRequest().authenticated()
                 )
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(jwtUnAuthResponse)
-                        .accessDeniedHandler(accessDeniedHandler)
-                )
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtUnAuthResponse))
+                .exceptionHandling(ex -> ex.accessDeniedHandler(accessDeniedHandler))
                 .csrf(csrf -> csrf.disable())
                 .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -73,6 +73,21 @@ public class SecurityConfig {
     public SecurityContextHolderAwareRequestFilter securityContextHolderAwareRequestFilter() {
         return new SecurityContextHolderAwareRequestFilter();
     }
+
+
+//
+//    @Bean
+//    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
+//        UserDetails user1 = User.withUsername("user")
+//                .password(passwordEncoder.encode("1234"))
+//                .build();
+//
+//        UserDetails user2 = User.withUsername("admin")
+//                .password(passwordEncoder.encode("1234"))
+//                .build();
+//
+//        return new InMemoryUserDetailsManager(user1, user2);
+//    }
 
 
 }
