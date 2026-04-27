@@ -52,7 +52,6 @@ public class SecurityConfig {
                                 "/configuration/**",
                                 "/webjars/**",
                                 "/api/auth/login",
-                                "/api/auth/refresh",
                                 "/api/auth/registerUser"
 
                         ).permitAll()

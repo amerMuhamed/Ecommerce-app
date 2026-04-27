@@ -44,8 +44,6 @@ public class AuthFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         Set<String> openPaths = new HashSet<>(Arrays.asList(
                 "/api/auth/login",
-                "/api/auth/logout",
-                "/api/auth/refresh",
                 "/api/auth/registerUser",
                 "/swagger-ui",
                 "/v3/api-docs",

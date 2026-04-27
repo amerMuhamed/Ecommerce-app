@@ -1,10 +1,15 @@
 package com.spring.eCommerce.Controller;
 
-import com.spring.eCommerce.dto.*;
+import com.spring.eCommerce.dto.JWTResponse;
+import com.spring.eCommerce.dto.LoginRequest;
+import com.spring.eCommerce.dto.RefreshTokenRequest;
+import com.spring.eCommerce.dto.UserRegistrationDto;
 import com.spring.eCommerce.entity.AppUser;
 import com.spring.eCommerce.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -28,12 +33,17 @@ public class AuthController {
         return ResponseEntity.ok(jwtResponse); }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestBody LogoutRequest request) {
-        authService.logout(request.refreshToken());
+    public ResponseEntity<String> logout(HttpServletRequest httpRequest) {
+        String authHeader = httpRequest.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Missing or invalid Authorization header");
+        }
+        String accessToken = authHeader.substring("Bearer ".length());
+        authService.logout(accessToken);
         return ResponseEntity.ok("Logged out successfully");
     }
 
-    @PostMapping("/refreshToken")
+    @PostMapping("/refresh")
     public ResponseEntity<JWTResponse> refresh(@RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refreshAccessToken(request.refreshToken()));
     }

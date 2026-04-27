@@ -14,8 +14,8 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                .info(new Info().title("Security API")
-                        .description("JWT Authentication")
+                .info(new Info().title("eCommerce API")
+                        .description("API documentation for the eCommerce application")
                         .version("v1"))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
                 .components(new io.swagger.v3.oas.models.Components()

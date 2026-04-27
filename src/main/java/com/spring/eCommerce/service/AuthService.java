@@ -82,16 +82,20 @@ public class AuthService {
     public JWTResponse refreshAccessToken(String refreshToken) {
 
         if (!jwtTokenUtils.validateToken(refreshToken)) {
+            log.warn("Invalid refresh token provided");
             throw new RuntimeException("Invalid token");
         }
         if (jwtTokenUtils.isTokenExpired(refreshToken)) {
+            log.warn("Refresh token expired");
             throw new TokenException("Refresh token expired");
         }
         if (!jwtTokenUtils.isRefreshToken(refreshToken)) {
+            log.warn("Token is not a refresh token type");
             throw new RuntimeException("Invalid token type");
         }
         TokenInfo oldTokenInfo = tokenInfoService.findByRefreshToken(refreshToken);
         if (oldTokenInfo == null) {
+            log.warn("Refresh token not found in database");
             throw new RuntimeException("Refresh token not found");
         }
         String username = jwtTokenUtils.getUsernameFromToken(refreshToken);
@@ -103,18 +107,28 @@ public class AuthService {
         oldTokenInfo.setRefreshToken(newRefreshToken);
         tokenInfoService.save(oldTokenInfo);
 
+        log.info("Access token refreshed for user: {}", username);
+
+        // Cleanup expired tokens after refresh
+        tokenInfoService.deleteExpiredTokens();
+
         return new JWTResponse(newAccessToken, newRefreshToken);
     }
 
     @Transactional
-    public void logout(String refreshToken) {
-        TokenInfo tokenInfo = tokenInfoService.findByRefreshToken(refreshToken);
+    public void logout(String accessToken) {
+        TokenInfo tokenInfo = tokenInfoService.findByAccessToken(accessToken);
         if (tokenInfo != null) {
-            log.info("Found token in DB, deleting...");
+            String username = jwtTokenUtils.getUsernameFromToken(accessToken);
             tokenInfoService.deleteById(tokenInfo.getId());
+            log.info("User {} logged out successfully", username);
         } else {
-            log.info("Token not found in DB!");
+            log.warn("Access token not found in database");
+            throw new TokenException("Token revocation failed");
         }
+
+        // Cleanup expired tokens after logout
+        tokenInfoService.deleteExpiredTokens();
     }
 
     @Transactional
@@ -136,11 +150,9 @@ public class AuthService {
                     return roleRepo.save(newRole);
                 });
 
-
         appUser.setRoles(Collections.singleton(adminRole));
         userService.save(appUser);
     }
-
 
 }
 
