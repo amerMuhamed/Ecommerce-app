@@ -1,4 +1,4 @@
-package com.spring.eCommerce.service.profileImage;
+package com.spring.eCommerce.service.image;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-public class ProfileImageService {
+public class ImageService {
     private final Cloudinary cloudinary;
 
     public Map<String, String> uploadImage(MultipartFile image) throws IOException {

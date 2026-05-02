@@ -25,7 +25,7 @@ public class AppUser {
     private String password;
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "profile_image_id", referencedColumnName = "id")
-    private ProfileImage profileImage;
+  private Image image;
 
     @ManyToMany
     @JoinTable(name = "app_user_role",

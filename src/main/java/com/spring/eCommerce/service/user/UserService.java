@@ -2,10 +2,10 @@ package com.spring.eCommerce.service.user;
 
 import com.spring.eCommerce.dto.UpdateUserRequest;
 import com.spring.eCommerce.entity.AppUser;
-import com.spring.eCommerce.entity.ProfileImage;
-import com.spring.eCommerce.repository.ProfileImageRepo;
+import com.spring.eCommerce.entity.Image;
+import com.spring.eCommerce.repository.ImageRepo;
 import com.spring.eCommerce.repository.UserRepo;
-import com.spring.eCommerce.service.profileImage.ProfileImageService;
+import com.spring.eCommerce.service.image.ImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,9 +20,9 @@ import java.util.Map;
 public class UserService {
 
     private final UserRepo userRepo;
-    private final ProfileImageRepo profileImageRepo;
+    private final ImageRepo imageRepo;
     private final PasswordEncoder passwordEncoder;
-    private final ProfileImageService imageUpload;
+    private final ImageService imageUpload;
 
     public AppUser findById(Long id) {
         return userRepo.findById(id).orElse(null);
@@ -75,17 +75,17 @@ public class UserService {
             throw new IllegalStateException("User not found to upload profile image");
         }
         try {
-            ProfileImage oldImage = user.getProfileImage();
+            Image oldImage = user.getImage();
             if (oldImage != null && oldImage.getPublicId() != null) {
                 imageUpload.deleteImage(oldImage.getPublicId());
             }
             Map<String, String> result = imageUpload.uploadImage(image);
-            ProfileImage profileImage = ProfileImage.builder()
-                    .profileImageUrl(result.get("imageUrl"))
+            Image profileImage = Image.builder()
+                    .imageUrl(result.get("imageUrl"))
                     .publicId(result.get("publicId"))
                     .build();
 
-            user.setProfileImage(profileImage);
+            user.setImage(profileImage);
             return userRepo.save(user);
 
         } catch (IOException e) {
@@ -97,15 +97,15 @@ public class UserService {
         if (user == null) {
             throw new IllegalStateException("User not found to delete profile image");
         }
-        ProfileImage oldImage = user.getProfileImage();
+        Image oldImage = user.getImage();
         if (oldImage != null && oldImage.getPublicId() != null) {
             try {
                 imageUpload.deleteImage(oldImage.getPublicId());
             } catch (IOException e) {
                 throw new IllegalStateException("Failed to delete profile image");
             }
-            user.setProfileImage(null);
-            profileImageRepo.delete(oldImage);
+            user.setImage(null);
+            imageRepo.delete(oldImage);
             userRepo.save(user);
             return "Profile image deleted successfully";
         }

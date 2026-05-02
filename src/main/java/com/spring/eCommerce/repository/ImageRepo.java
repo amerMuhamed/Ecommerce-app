@@ -1,9 +1,9 @@
 package com.spring.eCommerce.repository;
 
-import com.spring.eCommerce.entity.ProfileImage;
+import com.spring.eCommerce.entity.Image;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProfileImageRepo extends JpaRepository<ProfileImage, Long> {
+public interface ImageRepo extends JpaRepository<Image, Long> {
 }

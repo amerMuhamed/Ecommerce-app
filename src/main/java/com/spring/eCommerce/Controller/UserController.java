@@ -50,7 +50,7 @@ public class UserController {
             return ResponseEntity.badRequest().body("User not found");
         }
         AppUser updatedUser = userService.uploadProfileImage(user, image);
-        return ResponseEntity.ok(new UploadImageResponse( "Image uploaded successfully",updatedUser.getProfileImage().getProfileImageUrl()));
+        return ResponseEntity.ok(new UploadImageResponse("Image uploaded successfully", updatedUser.getImage().getImageUrl()));
     }
 
     @Transactional

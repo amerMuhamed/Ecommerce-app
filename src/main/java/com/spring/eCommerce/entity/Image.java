@@ -6,15 +6,15 @@ import lombok.*;
 @Getter
 @Setter
 @Entity
-@Table(name = "profile_image")
+@Table(name = "image")
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-public class ProfileImage {
+public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String profileImageUrl;
+    private String imageUrl;
     private String publicId;
 
 }
