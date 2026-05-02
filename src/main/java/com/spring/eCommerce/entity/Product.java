@@ -3,6 +3,7 @@ package com.spring.eCommerce.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -25,12 +26,13 @@ public class Product {
     private Double price;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_id")
-    private List<Image> image;
+    @JoinColumn(name = "product_id")
+    @Builder.Default
+    private List<Image> images = new ArrayList<>();
 
     private int availableQuantity;
 
-    private Date createdData;
+    private Date createdDate;
 
     @ManyToMany
     @JoinTable(
@@ -38,6 +40,7 @@ public class Product {
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
-    private List<Category> categories;
+    @Builder.Default
+    private List<Category> categories = new ArrayList<>();
 
 }

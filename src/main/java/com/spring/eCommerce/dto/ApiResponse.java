@@ -1,4 +1,8 @@
 package com.spring.eCommerce.dto;
 
-public record ApiResponse(String message,int status) {
+public record ApiResponse<T>(
+        boolean success,
+        String message,
+        T data
+) {
 }

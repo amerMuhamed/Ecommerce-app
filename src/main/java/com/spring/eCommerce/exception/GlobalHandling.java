@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 public class GlobalHandling {
 
     private static ResponseEntity<Object> build(HttpStatus status, String message) {
-        return ResponseEntity.status(status).body(new ApiResponse(message, status.value()));
+        boolean success = status.is2xxSuccessful();
+        return ResponseEntity.status(status).body(new ApiResponse<>(success, message, null));
     }
 
     private static String req(HttpServletRequest request) {

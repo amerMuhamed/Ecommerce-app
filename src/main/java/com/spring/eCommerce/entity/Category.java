@@ -3,6 +3,7 @@ package com.spring.eCommerce.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,5 +21,6 @@ public class Category {
     private String name;
 
     @ManyToMany(mappedBy = "categories")
-    private List<Product> products;
+    @Builder.Default
+    private List<Product> products = new ArrayList<>();
 }

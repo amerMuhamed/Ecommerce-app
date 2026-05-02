@@ -31,9 +31,10 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        ApiResponse body = new ApiResponse(
+        ApiResponse<?> body = new ApiResponse<>(
+                false,
                 "You do not have permission to access this resource",
-                HttpServletResponse.SC_FORBIDDEN
+                null
         );
 
         response.getWriter().write(objectMapper.writeValueAsString(body));
