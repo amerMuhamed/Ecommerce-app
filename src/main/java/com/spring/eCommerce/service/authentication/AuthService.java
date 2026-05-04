@@ -1,4 +1,4 @@
-package com.spring.eCommerce.service;
+package com.spring.eCommerce.service.authentication;
 
 import com.spring.eCommerce.dto.JWTResponse;
 import com.spring.eCommerce.entity.AppUser;

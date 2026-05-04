@@ -2,7 +2,7 @@ package com.spring.eCommerce.Controller;
 
 import com.spring.eCommerce.dto.*;
 import com.spring.eCommerce.entity.AppUser;
-import com.spring.eCommerce.service.AuthService;
+import com.spring.eCommerce.service.authentication.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
