@@ -1,6 +1,6 @@
 package com.spring.eCommerce.service.authentication;
 
-import com.spring.eCommerce.dto.JWTResponse;
+import com.spring.eCommerce.dto.authentication.JWTResponse;
 import com.spring.eCommerce.entity.AppUser;
 import com.spring.eCommerce.entity.Role;
 import com.spring.eCommerce.entity.TokenInfo;

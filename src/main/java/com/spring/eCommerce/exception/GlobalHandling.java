@@ -1,6 +1,6 @@
 package com.spring.eCommerce.exception;
 
-import com.spring.eCommerce.dto.ApiResponse;
+import com.spring.eCommerce.dto.api.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.DataIntegrityViolationException;

@@ -1,6 +1,6 @@
-package com.spring.eCommerce.dto;
+package com.spring.eCommerce.dto.image;
 
-public record ImageDto(
+public record ImageResponseDto(
         Long id,
         String imageUrl,
         String publicId

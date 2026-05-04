@@ -2,17 +2,18 @@ package com.spring.eCommerce.service.comman;
 
 import java.util.List;
 
-public interface CommonService<E> {
-    public List<E> getAll();
+public interface CommonService<REQ, RES> {
+    public List<RES> getAll();
 
-    public E getById(Long id);
+    public RES getById(Long id);
 
-    public E save(E obj);
+    public RES save(REQ obj);
 
-    public void delete(E obj);
+    public void delete(REQ obj);
 
     public void deleteById(Long id);
 
-    public E update(E obj);
+    public RES update(Long id, REQ obj);
 
 }
+

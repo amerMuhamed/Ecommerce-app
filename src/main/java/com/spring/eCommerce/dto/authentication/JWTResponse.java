@@ -1,4 +1,4 @@
-package com.spring.eCommerce.dto;
+package com.spring.eCommerce.dto.authentication;
 
 import lombok.Builder;
 

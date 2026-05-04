@@ -1,4 +1,4 @@
-package com.spring.eCommerce.dto;
+package com.spring.eCommerce.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

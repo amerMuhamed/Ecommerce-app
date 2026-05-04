@@ -1,7 +1,7 @@
 package com.spring.eCommerce.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spring.eCommerce.dto.ApiResponse;
+import com.spring.eCommerce.dto.api.ApiResponse;
 import com.spring.eCommerce.entity.TokenInfo;
 import com.spring.eCommerce.service.token.TokenInfoService;
 import io.jsonwebtoken.ExpiredJwtException;

@@ -1,7 +1,8 @@
 package com.spring.eCommerce.service.category;
 
 import com.spring.eCommerce.Mapper.CategoryMapper;
-import com.spring.eCommerce.dto.CategoryDto;
+import com.spring.eCommerce.dto.category.CategoryRequestDto;
+import com.spring.eCommerce.dto.category.CategoryResponseDto;
 import com.spring.eCommerce.entity.Category;
 import com.spring.eCommerce.repository.CategoryRepo;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepo categoryRepo;
 
     @Override
-    public List<CategoryDto> getAll() {
+    public List<CategoryResponseDto> getAll() {
         return categoryRepo.findAll()
                 .stream()
                 .map(categoryMapper::toDto)
@@ -24,19 +25,19 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto getById(Long id) {
+    public CategoryResponseDto getById(Long id) {
         return categoryRepo.findById(id)
                 .map(categoryMapper::toDto)
                 .orElse(null);
     }
 
     @Override
-    public CategoryDto save(CategoryDto obj) {
+    public CategoryResponseDto save(CategoryRequestDto obj) {
         return categoryMapper.toDto(categoryRepo.save(categoryMapper.toEntity(obj)));
     }
 
     @Override
-    public void delete(CategoryDto obj) {
+    public void delete(CategoryRequestDto obj) {
         categoryRepo.delete(categoryMapper.toEntity(obj));
     }
 
@@ -46,13 +47,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto update(CategoryDto obj) {
-        if (obj.id() == null) {
+    public CategoryResponseDto update(Long id, CategoryRequestDto obj) {
+        if (id == null) {
             throw new IllegalArgumentException("Category ID must not be null for update.");
         }
-        Category existingCategory = categoryRepo.findById(obj.id())
-                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + obj.id()));
+        Category existingCategory = categoryRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + id));
+        if (obj.name() != null) {
         existingCategory.setName(obj.name());
+        }
         return categoryMapper.toDto(categoryRepo.save(existingCategory));
     }
 }

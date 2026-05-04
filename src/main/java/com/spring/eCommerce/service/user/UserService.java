@@ -1,6 +1,6 @@
 package com.spring.eCommerce.service.user;
 
-import com.spring.eCommerce.dto.UpdateUserRequest;
+import com.spring.eCommerce.dto.user.UpdateUserRequest;
 import com.spring.eCommerce.entity.AppUser;
 import com.spring.eCommerce.entity.Image;
 import com.spring.eCommerce.repository.ImageRepo;

@@ -1,4 +1,4 @@
-package com.spring.eCommerce.dto;
+package com.spring.eCommerce.dto.authentication;
 
 public record RefreshTokenRequest(String refreshToken) {
 }

@@ -1,4 +1,4 @@
-package com.spring.eCommerce.dto;
+package com.spring.eCommerce.dto.api;
 
 public record ApiResponse<T>(
         boolean success,

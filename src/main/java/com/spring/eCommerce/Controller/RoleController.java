@@ -1,6 +1,6 @@
 package com.spring.eCommerce.Controller;
 
-import com.spring.eCommerce.dto.ApiResponse;
+import com.spring.eCommerce.dto.api.ApiResponse;
 import com.spring.eCommerce.service.role.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

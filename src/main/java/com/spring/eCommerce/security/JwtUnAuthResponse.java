@@ -1,7 +1,7 @@
 package com.spring.eCommerce.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spring.eCommerce.dto.ApiResponse;
+import com.spring.eCommerce.dto.api.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
