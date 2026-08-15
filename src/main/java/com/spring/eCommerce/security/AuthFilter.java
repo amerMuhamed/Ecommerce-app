@@ -34,6 +34,15 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AuthFilter extends OncePerRequestFilter {
 
+    private static final Set<String> OPEN_PATHS = new HashSet<>(Arrays.asList(
+            "/api/auth/login",
+            "/api/auth/registerUser",
+            "/swagger-ui",
+            "/v3/api-docs",
+            "/swagger-resources",
+            "/webjars"
+    ));
+
     private final JwtTokenUtils jwtTokenUtils;
     private final UserDetailsService userDetailsService;
     private final TokenInfoService tokenInfoService;
@@ -42,18 +51,9 @@ public class AuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
-        Set<String> openPaths = new HashSet<>(Arrays.asList(
-                "/api/auth/login",
-                "/api/auth/registerUser",
-                "/swagger-ui",
-                "/v3/api-docs",
-                "/swagger-resources",
-                "/webjars"
-        ));
-
         String path = request.getRequestURI();
 
-        if (openPaths.stream().anyMatch(path::startsWith)) {
+        if (OPEN_PATHS.stream().anyMatch(path::startsWith)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -74,8 +74,7 @@ public class AuthFilter extends OncePerRequestFilter {
                     TokenInfo tokenInfo = tokenInfoService.findByAccessToken(jwtToken);
                     if (tokenInfo == null) {
                         log.warn("{} {} -> token revoked or not found", request.getMethod(), request.getRequestURI());
-                        writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
-                                new ApiResponse("Unauthorized", HttpServletResponse.SC_UNAUTHORIZED));
+                        writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
                         return;
                     }
                     String username = jwtTokenUtils.getUsernameFromToken(jwtToken);
@@ -85,7 +84,7 @@ public class AuthFilter extends OncePerRequestFilter {
                             UsernamePasswordAuthenticationToken passwordAuthenticationToken =
                                     new UsernamePasswordAuthenticationToken(appUserDetail, null, appUserDetail.getAuthorities());
                             passwordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                            SecurityContextHolder.getContext().setAuthentication(passwordAuthenticationToken);
+                            securityContext.setAuthentication(passwordAuthenticationToken);
                         }
                     }
                 }
@@ -95,25 +94,20 @@ public class AuthFilter extends OncePerRequestFilter {
 
         } catch (ExpiredJwtException | MalformedJwtException | SignatureException e) {
             log.warn("{} {} -> jwt rejected: {}", request.getMethod(), request.getRequestURI(), e.getClass().getSimpleName());
-            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
-                    new ApiResponse("Unauthorized", HttpServletResponse.SC_UNAUTHORIZED));
-
+            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
         } catch (IllegalArgumentException e) {
             log.warn("{} {} -> invalid authorization header", request.getMethod(), request.getRequestURI());
-            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
-                    new ApiResponse("Unauthorized", HttpServletResponse.SC_UNAUTHORIZED));
-
+            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
         } catch (Exception e) {
             log.error("{} {} -> unexpected error", request.getMethod(), request.getRequestURI(), e);
-            writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    new ApiResponse("Unexpected server error", HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
+            writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unexpected server error");
         }
     }
 
-    private void writeJson(HttpServletResponse response, int status, ApiResponse body) throws IOException {
+    private void writeJson(HttpServletResponse response, int status, String message) throws IOException {
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+        response.getWriter().write(new ObjectMapper().writeValueAsString(new ApiResponse<>(false, message, null)));
     }
 
 }
