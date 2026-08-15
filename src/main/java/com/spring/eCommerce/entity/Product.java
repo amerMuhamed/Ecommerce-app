@@ -34,6 +34,8 @@ public class Product {
 
     private Date createdDate;
 
+    private Date modifiedDate;
+
     @ManyToMany
     @JoinTable(
             name = "product_category",
@@ -42,5 +44,17 @@ public class Product {
     )
     @Builder.Default
     private List<Category> categories = new ArrayList<>();
+
+    @PrePersist
+    protected void onCreate() {
+        Date now = new Date();
+        createdDate = now;
+        modifiedDate = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        modifiedDate = new Date();
+    }
 
 }

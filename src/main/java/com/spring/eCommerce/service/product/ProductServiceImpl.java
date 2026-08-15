@@ -8,11 +8,12 @@ import com.spring.eCommerce.entity.Product;
 import com.spring.eCommerce.exception.NotFoundException;
 import com.spring.eCommerce.repository.ProductRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @RequiredArgsConstructor
-
+@Service
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepo productRepo;
@@ -32,6 +33,13 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new NotFoundException("Product not found with id: " + id));
     }
 
+    public ProductResponseDto getByName(String name) {
+        if (productRepo.findByName(name) != null) {
+            return productMapper.toDto(productRepo.findByName(name));
+        }
+        return null;
+    }
+
     @Override
     public ProductResponseDto save(ProductRequestDto obj) {
         return productMapper.toDto(productRepo.save(productMapper.toEntity(obj)));
@@ -39,7 +47,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void delete(ProductRequestDto obj) {
-        productRepo.delete(productMapper.toEntity(obj));
+        if (obj == null || obj.name() == null || obj.name().trim().isEmpty()) {
+            throw new IllegalArgumentException("Product object must not be null for deletion.");
+        }
+        Product productToDelete = productRepo.findByName(obj.name());
+        if (productToDelete == null) {
+            throw new NotFoundException("Product not found with name: " + obj.name());
+        }
+        productRepo.deleteById(productToDelete.getId());
     }
 
     @Override

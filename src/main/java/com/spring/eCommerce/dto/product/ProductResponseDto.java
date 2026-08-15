@@ -14,6 +14,7 @@ public record ProductResponseDto(
         List<ImageResponseDto> images,
         int availableQuantity,
         Date createdDate,
+        Date modifiedDate,
         List<CategoryResponseDto> categories
 
 ) {
