@@ -30,7 +30,7 @@ public class JwtUnAuthResponse implements AuthenticationEntryPoint, Serializable
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        ApiResponse body = new ApiResponse("Unauthorized", HttpServletResponse.SC_UNAUTHORIZED);
+        ApiResponse<?> body = new ApiResponse<>(false, "Unauthorized", null);
         response.getWriter().write(objectMapper.writeValueAsString(body));
     }
 }

@@ -37,26 +37,29 @@ public class CategoryController {
         );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<?>> delete(@PathVariable Long id) {
-        categoryService.deleteById(id);
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<?>> update(
+            @PathVariable Long id,
+            @RequestBody CategoryRequestDto categoryRequestDto
+    ) {
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Category updated successfully", categoryService.update(id, categoryRequestDto))
+        );
+    }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<?>> deleteById(@PathVariable Long id) {
+        categoryService.deleteById(id);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Category deleted successfully", null)
         );
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse<?>> patch(
-            @PathVariable Long id,
-            @RequestBody CategoryRequestDto categoryRequestDto
-    ) {
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<?>> deleteByName(@Valid @RequestBody CategoryRequestDto categoryRequestDto) {
+        categoryService.delete(categoryRequestDto);
         return ResponseEntity.ok(
-                new ApiResponse<>(
-                        true,
-                        "Category updated successfully",
-                        categoryService.update(id, categoryRequestDto)
-                )
+                new ApiResponse<>(true, "Category deleted successfully", null)
         );
     }
 }
