@@ -7,4 +7,5 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface CategoryService extends CommonService<CategoryRequestDto, CategoryResponseDto> {
+    void deleteByName(String name);
 }

@@ -56,8 +56,8 @@ public class CategoryController {
     }
 
     @DeleteMapping
-    public ResponseEntity<ApiResponse<?>> deleteByName(@Valid @RequestBody CategoryRequestDto categoryRequestDto) {
-        categoryService.delete(categoryRequestDto);
+    public ResponseEntity<ApiResponse<?>> deleteByName(@Valid @RequestParam String name) {
+        categoryService.deleteByName(name);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Category deleted successfully", null)
         );

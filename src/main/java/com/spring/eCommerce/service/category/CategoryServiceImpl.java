@@ -60,13 +60,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
-    public void delete(CategoryRequestDto obj) {
-        if (obj == null || obj.name() == null || obj.name().trim().isEmpty()) {
-            throw new IllegalArgumentException("Category object must not be null for deletion.");
+    public void deleteByName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Category name must not be null or empty for deletion.");
         }
-        Category categoryToDelete = categoryRepo.findByName(obj.name());
+        Category categoryToDelete = categoryRepo.findByName(name);
         if (categoryToDelete == null) {
-            throw new RuntimeException("Category not found with name: " + obj.name());
+            throw new RuntimeException("Category not found with name: " + name);
         }
         categoryRepo.unlinkProducts(categoryToDelete.getId());
         categoryRepo.deleteById(categoryToDelete.getId());
