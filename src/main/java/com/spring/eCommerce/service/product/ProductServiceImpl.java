@@ -6,9 +6,11 @@ import com.spring.eCommerce.dto.product.ProductRequestDto;
 import com.spring.eCommerce.dto.product.ProductResponseDto;
 import com.spring.eCommerce.entity.Product;
 import com.spring.eCommerce.exception.NotFoundException;
+import com.spring.eCommerce.repository.CategoryRepo;
 import com.spring.eCommerce.repository.ProductRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,6 +21,8 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepo productRepo;
 
     private final ProductMapper productMapper;
+
+    private final CategoryRepo categoryRepo;
 
 
     @Override
@@ -41,28 +45,40 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductResponseDto save(ProductRequestDto obj) {
-        return productMapper.toDto(productRepo.save(productMapper.toEntity(obj)));
+        Product product = productMapper.toEntity(obj);
+        if (obj.categoryIds() != null && !obj.categoryIds().isEmpty()) {
+            product.setCategories(categoryRepo.findAllById(obj.categoryIds()));
+        }
+        return productMapper.toDto(productRepo.save(product));
     }
 
     @Override
-    public void delete(ProductRequestDto obj) {
-        if (obj == null || obj.name() == null || obj.name().trim().isEmpty()) {
-            throw new IllegalArgumentException("Product object must not be null for deletion.");
+    public void deleteByName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Product name must not be null or empty for deletion.");
         }
-        Product productToDelete = productRepo.findByName(obj.name());
+        Product productToDelete = productRepo.findByName(name);
         if (productToDelete == null) {
-            throw new NotFoundException("Product not found with name: " + obj.name());
+            throw new NotFoundException("Product not found with name: " + name);
         }
         productRepo.deleteById(productToDelete.getId());
     }
 
     @Override
     public void deleteById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Product ID must not be null for deletion.");
+        }
+        if (!productRepo.existsById(id)) {
+            throw new NotFoundException("Product not found with id: " + id);
+        }
         productRepo.deleteById(id);
     }
 
     @Override
+    @Transactional
     public ProductResponseDto update(Long id, ProductRequestDto obj) {
 
         if (id == null) {
@@ -85,6 +101,10 @@ public class ProductServiceImpl implements ProductService {
 
         if (obj.availableQuantity() != null) {
             existingProduct.setAvailableQuantity(obj.availableQuantity());
+        }
+
+        if (obj.categoryIds() != null) {
+            existingProduct.setCategories(categoryRepo.findAllById(obj.categoryIds()));
         }
 
         Product updatedProduct = productRepo.save(existingProduct);

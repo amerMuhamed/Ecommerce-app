@@ -37,20 +37,22 @@ public class ProductController {
         );
     }
 
-    @PutMapping
+    @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> update(@PathVariable Long id, @RequestBody ProductRequestDto productRequestDto) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 new ApiResponse<>(true, "Product updated successfully", productService.update(id, productRequestDto))
         );
     }
 
+    @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> deleteById(@PathVariable Long id) {
         productService.deleteById(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Product deleted successfully", null));
     }
 
-    public ResponseEntity<ApiResponse<?>> deleteByName(@RequestBody ProductRequestDto productRequestDto) {
-        productService.delete(productRequestDto);
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<?>> deleteByName(@RequestParam String name) {
+        productService.deleteByName(name);
         return ResponseEntity.ok(new ApiResponse<>(true, "Product deleted successfully", null));
     }
 }

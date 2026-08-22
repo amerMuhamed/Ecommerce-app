@@ -7,5 +7,5 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface ProductService extends CommonService<ProductRequestDto, ProductResponseDto> {
-
+    void deleteByName(String name);
 }

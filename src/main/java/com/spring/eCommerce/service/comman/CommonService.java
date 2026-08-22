@@ -9,8 +9,6 @@ public interface CommonService<REQ, RES> {
 
     public RES save(REQ obj);
 
-    public void delete(REQ obj);
-
     public void deleteById(Long id);
 
     public RES update(Long id, REQ obj);
