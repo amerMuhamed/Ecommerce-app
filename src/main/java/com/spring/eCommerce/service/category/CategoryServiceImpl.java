@@ -5,6 +5,7 @@ import com.spring.eCommerce.dto.category.CategoryRequestDto;
 import com.spring.eCommerce.dto.category.CategoryResponseDto;
 import com.spring.eCommerce.entity.Category;
 import com.spring.eCommerce.entity.Product;
+import com.spring.eCommerce.exception.BusinessException;
 import com.spring.eCommerce.repository.CategoryRepo;
 import com.spring.eCommerce.repository.ProductRepo;
 import lombok.RequiredArgsConstructor;
@@ -66,11 +67,12 @@ public class CategoryServiceImpl implements CategoryService {
         }
         Category categoryToDelete = categoryRepo.findByName(name);
         if (categoryToDelete == null) {
-            throw new RuntimeException("Category not found with name: " + name);
+            throw new BusinessException("Category not found with name: " + name);
         }
         categoryRepo.unlinkProducts(categoryToDelete.getId());
         categoryRepo.deleteById(categoryToDelete.getId());
     }
+
 
     @Override
     @Transactional
@@ -86,7 +88,7 @@ public class CategoryServiceImpl implements CategoryService {
             throw new IllegalArgumentException("Category ID must not be null for update.");
         }
         Category existingCategory = categoryRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + id));
+                .orElseThrow(() -> new BusinessException("Category not found with ID: " + id));
         if (obj.name() != null) {
             existingCategory.setName(obj.name());
         }
@@ -103,5 +105,45 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         return categoryMapper.toDto(existingCategory);
+    }
+
+    @Transactional
+    @Override
+    public void addProducts(Long categoryId, List<Long> productIds) {
+
+        if (categoryId == null) {
+            throw new IllegalArgumentException(
+                    "Category ID must not be null for adding products."
+            );
+        }
+
+        if (productIds == null || productIds.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Product IDs must not be null or empty for adding products."
+            );
+        }
+
+        Category category = categoryRepo.findById(categoryId)
+                .orElseThrow(() ->
+                        new BusinessException(
+                                "Category not found with ID: " + categoryId
+                        )
+                );
+
+        List<Product> products = productRepo.findAllById(productIds);
+
+        if (products.size() != productIds.size()) {
+            throw new BusinessException(
+                    "One or more products were not found."
+            );
+        }
+
+        for (Product product : products) {
+            if (!product.getCategories().contains(category)) {
+                product.getCategories().add(category);
+            }
+        }
+
+        productRepo.saveAll(products);
     }
 }

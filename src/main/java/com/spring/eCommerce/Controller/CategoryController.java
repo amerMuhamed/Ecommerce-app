@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/categories")
 @RequiredArgsConstructor
@@ -44,6 +46,14 @@ public class CategoryController {
     ) {
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Category updated successfully", categoryService.update(id, categoryRequestDto))
+        );
+    }
+
+    @PatchMapping("/{categoryId}/addProducts")
+    public ResponseEntity<ApiResponse<?>> addProducts(@PathVariable Long categoryId, @RequestBody List<Long> productIds) {
+        categoryService.addProducts(categoryId, productIds);
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Products added to category successfully", null)
         );
     }
 
