@@ -5,7 +5,7 @@ import com.spring.eCommerce.Mapper.ProductMapper;
 import com.spring.eCommerce.dto.product.ProductRequestDto;
 import com.spring.eCommerce.dto.product.ProductResponseDto;
 import com.spring.eCommerce.entity.Product;
-import com.spring.eCommerce.exception.NotFoundException;
+import com.spring.eCommerce.exception.BusinessException;
 import com.spring.eCommerce.repository.CategoryRepo;
 import com.spring.eCommerce.repository.ProductRepo;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponseDto getById(Long id) {
         return productRepo.findById(id)
                 .map(productMapper::toDto)
-                .orElseThrow(() -> new NotFoundException("Product not found with id: " + id));
+                .orElseThrow(() -> new BusinessException("Product not found with id: " + id));
     }
 
     public ProductResponseDto getByName(String name) {
@@ -61,7 +61,7 @@ public class ProductServiceImpl implements ProductService {
         }
         Product productToDelete = productRepo.findByName(name);
         if (productToDelete == null) {
-            throw new NotFoundException("Product not found with name: " + name);
+            throw new BusinessException("Product not found with name: " + name);
         }
         productRepo.deleteById(productToDelete.getId());
     }
@@ -72,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException("Product ID must not be null for deletion.");
         }
         if (!productRepo.existsById(id)) {
-            throw new NotFoundException("Product not found with id: " + id);
+            throw new BusinessException("Product not found with id: " + id);
         }
         productRepo.deleteById(id);
     }
@@ -86,7 +86,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product existingProduct = productRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
+                .orElseThrow(() -> new BusinessException("Product not found with ID: " + id));
         if (obj.name() != null) {
             existingProduct.setName(obj.name());
         }

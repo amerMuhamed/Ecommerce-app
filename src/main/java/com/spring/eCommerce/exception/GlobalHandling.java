@@ -99,9 +99,16 @@ public class GlobalHandling {
             MethodArgumentTypeMismatchException.class,
             IllegalArgumentException.class
     })
-    public ResponseEntity<Object> handleBadRequest(Exception ex, HttpServletRequest request) {
+    public ResponseEntity<Object> handleIllegalArgument(
+            IllegalArgumentException ex,
+            HttpServletRequest request) {
+
         log.warn("{} -> bad request: {}", req(request), ex.getMessage());
-        return build(HttpStatus.BAD_REQUEST, "Invalid request");
+
+        return build(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
     }
 
     // ---------- Business / persistence ----------
@@ -125,6 +132,18 @@ public class GlobalHandling {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected runtime error");
     }
 
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Object> handleBusinessException(
+            BusinessException ex,
+            HttpServletRequest request) {
+
+        log.warn("{} -> business error: {}", req(request), ex.getMessage());
+
+        return build(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+    }
     // ---------- Catch-all ----------
 
     @ExceptionHandler(Exception.class)

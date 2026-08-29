@@ -3,6 +3,7 @@ package com.spring.eCommerce.service.user;
 import com.spring.eCommerce.dto.user.UpdateUserRequest;
 import com.spring.eCommerce.entity.AppUser;
 import com.spring.eCommerce.entity.Image;
+import com.spring.eCommerce.exception.BusinessException;
 import com.spring.eCommerce.repository.ImageRepo;
 import com.spring.eCommerce.repository.UserRepo;
 import com.spring.eCommerce.service.image.ImageService;
@@ -39,14 +40,14 @@ public class UserService {
     public AppUser save(AppUser user) {
         AppUser existingUser = findByUserName(user.getUsername());
         if (existingUser != null) {
-            throw new IllegalStateException("User already exists");
+            throw new BusinessException("User already exists");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepo.save(user);
     }
     public AppUser updateUser(Long id, UpdateUserRequest request) {
         AppUser existingUser = userRepo.findById(id).orElseThrow(() ->
-                new IllegalStateException("User not found"));
+                new BusinessException("User not found"));
 
         if (request.getFullName() != null)
             existingUser.setFullName(request.getFullName());
@@ -65,14 +66,14 @@ public class UserService {
 
     public void delete(AppUser user) {
         if (user == null || findByUserName(user.getUsername()) == null) {
-            throw new IllegalStateException("User not found to delete it");
+            throw new BusinessException("User not found to delete it");
         }
         userRepo.delete(user);
     }
 
     public AppUser uploadProfileImage(AppUser user, MultipartFile image) {
         if (user == null) {
-            throw new IllegalStateException("User not found to upload profile image");
+            throw new BusinessException("User not found to upload profile image");
         }
         try {
             Image oldImage = user.getImage();
@@ -95,7 +96,7 @@ public class UserService {
 
     public String deleteProfileImage(AppUser user) {
         if (user == null) {
-            throw new IllegalStateException("User not found to delete profile image");
+            throw new BusinessException("User not found to delete profile image");
         }
         Image oldImage = user.getImage();
         if (oldImage != null && oldImage.getPublicId() != null) {

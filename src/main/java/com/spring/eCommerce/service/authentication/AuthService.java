@@ -83,7 +83,7 @@ public class AuthService {
 
         if (!jwtTokenUtils.validateToken(refreshToken)) {
             log.warn("Invalid refresh token provided");
-            throw new RuntimeException("Invalid token");
+            throw new TokenException("Invalid token");
         }
         if (jwtTokenUtils.isTokenExpired(refreshToken)) {
             log.warn("Refresh token expired");
@@ -91,12 +91,12 @@ public class AuthService {
         }
         if (!jwtTokenUtils.isRefreshToken(refreshToken)) {
             log.warn("Token is not a refresh token type");
-            throw new RuntimeException("Invalid token type");
+            throw new TokenException("Invalid token type");
         }
         TokenInfo oldTokenInfo = tokenInfoService.findByRefreshToken(refreshToken);
         if (oldTokenInfo == null) {
             log.warn("Refresh token not found in database");
-            throw new RuntimeException("Refresh token not found");
+            throw new TokenException("Refresh token not found");
         }
         String username = jwtTokenUtils.getUsernameFromToken(refreshToken);
 

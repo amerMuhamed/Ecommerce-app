@@ -15,15 +15,16 @@ public class ProductController {
 
     private final ProductService productService;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<?>> getAll() {
+        return ResponseEntity.ok(new ApiResponse<>(true, "Products retrieved successfully", productService.getAll()));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(new ApiResponse<>(true, "Product retrieved successfully", productService.getById(id)));
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<?>> getAll() {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Products retrieved successfully", productService.getAll()));
-    }
 
     @GetMapping("/name")
     public ResponseEntity<ApiResponse<?>> getByName(@RequestParam String name) {
