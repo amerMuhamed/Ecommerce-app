@@ -80,6 +80,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public CategoryResponseDto update(Long id, CategoryRequestDto obj) {
         if (id == null) {
             throw new IllegalArgumentException("Category ID must not be null for update.");
@@ -87,8 +88,20 @@ public class CategoryServiceImpl implements CategoryService {
         Category existingCategory = categoryRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with ID: " + id));
         if (obj.name() != null) {
-        existingCategory.setName(obj.name());
+            existingCategory.setName(obj.name());
         }
-        return categoryMapper.toDto(categoryRepo.save(existingCategory));
+
+        if (obj.productIds() != null) {
+            categoryRepo.unlinkProducts(id);
+            List<Product> products = productRepo.findAllById(obj.productIds());
+            Category finalExistingCategory = existingCategory;
+            products.forEach(product -> {
+                product.getCategories().clear();
+                product.getCategories().add(finalExistingCategory);
+            });
+            productRepo.saveAll(products);
+        }
+
+        return categoryMapper.toDto(existingCategory);
     }
 }
