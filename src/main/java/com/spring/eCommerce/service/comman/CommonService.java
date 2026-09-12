@@ -13,7 +13,6 @@ public interface CommonService<REQ, RES> {
 
     public RES update(Long id, REQ obj);
 
-    public RES getByName(String name);
 
 }
 

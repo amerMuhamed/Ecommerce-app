@@ -8,6 +8,7 @@ import com.spring.eCommerce.repository.ImageRepo;
 import com.spring.eCommerce.repository.UserRepo;
 import com.spring.eCommerce.service.image.ImageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -111,6 +112,10 @@ public class UserService {
             return "Profile image deleted successfully";
         }
         return "No profile image to delete";
+    }
+
+    public static AppUser getCurrentUser() {
+        return (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
 
