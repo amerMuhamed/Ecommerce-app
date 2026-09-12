@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -14,7 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class Product {
+public class Product extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,31 +29,16 @@ public class Product {
     @Builder.Default
     private List<Image> images = new ArrayList<>();
 
-    private int availableQuantity;
-
-    private Date createdDate;
-
-    private Date modifiedDate;
-
     @ManyToMany
     @JoinTable(
             name = "product_category",
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
+
     @Builder.Default
     private List<Category> categories = new ArrayList<>();
 
-    @PrePersist
-    protected void onCreate() {
-        Date now = new Date();
-        createdDate = now;
-        modifiedDate = now;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        modifiedDate = new Date();
-    }
+    private int availableQuantity;
 
 }
