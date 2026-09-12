@@ -1,11 +1,15 @@
 package com.spring.eCommerce.service.cart;
 
+import com.spring.eCommerce.dto.cart.CartItemResponseDto;
 import com.spring.eCommerce.dto.cart.CartRequestDto;
 import com.spring.eCommerce.dto.cart.CartResponseDto;
-import com.spring.eCommerce.service.comman.CommonService;
 
-public interface CartService extends CommonService<CartRequestDto, CartResponseDto> {
+public interface CartService {
 
-    CartResponseDto addItemToCart(CartRequestDto cartRequestDto);
+    CartItemResponseDto addItemToCart(CartRequestDto cartRequestDto);
+
+    CartResponseDto getCart();
+
+    void clearCart();
 
 }

@@ -6,6 +6,7 @@ import com.spring.eCommerce.entity.Image;
 import com.spring.eCommerce.exception.BusinessException;
 import com.spring.eCommerce.repository.ImageRepo;
 import com.spring.eCommerce.repository.UserRepo;
+import com.spring.eCommerce.security.AppUserDetail;
 import com.spring.eCommerce.service.image.ImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -114,8 +115,9 @@ public class UserService {
         return "No profile image to delete";
     }
 
-    public static AppUser getCurrentUser() {
-        return (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public AppUser getCurrentUser() {
+        AppUserDetail appUserDetail = (AppUserDetail) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userRepo.findByUsername(appUserDetail.getUsername()).orElse(null);
     }
 }
 

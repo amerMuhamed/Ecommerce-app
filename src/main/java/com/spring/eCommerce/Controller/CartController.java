@@ -6,10 +6,7 @@ import com.spring.eCommerce.service.cart.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController()
@@ -22,6 +19,21 @@ public class CartController {
     public ResponseEntity<ApiResponse<?>> addProductToCart(@RequestBody CartRequestDto cartRequestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 new ApiResponse<>(true, "Product added to cart successfully", cartService.addItemToCart(cartRequestDto))
+        );
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<?>> getUserCart() {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(true, "User cart retrieved successfully", cartService.getCart())
+        );
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<?>> deleteUserCart() {
+        cartService.clearCart();
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new ApiResponse<>(true, "User cart cleared successfully", null)
         );
     }
 }

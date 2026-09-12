@@ -1,5 +1,6 @@
 package com.spring.eCommerce.service.cart;
 
+import com.spring.eCommerce.dto.cart.CartItemResponseDto;
 import com.spring.eCommerce.dto.cart.CartRequestDto;
 import com.spring.eCommerce.dto.cart.CartResponseDto;
 import com.spring.eCommerce.entity.AppUser;
@@ -7,34 +8,32 @@ import com.spring.eCommerce.entity.Cart;
 import com.spring.eCommerce.entity.CartItem;
 import com.spring.eCommerce.entity.Product;
 import com.spring.eCommerce.exception.BusinessException;
-import com.spring.eCommerce.repository.CartItemRepo;
 import com.spring.eCommerce.repository.CartRepo;
 import com.spring.eCommerce.repository.ProductRepo;
 import com.spring.eCommerce.service.user.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
-
+    private final UserService userService;
     private final ProductRepo productRepo;
     private final CartRepo cartRepo;
-    private final CartItemRepo cartItemRepo;
 
     @Override
-    public CartResponseDto addItemToCart(CartRequestDto cartRequestDto) {
+    @Transactional
+    public CartItemResponseDto addItemToCart(CartRequestDto cartRequestDto) {
 
         Product product = productRepo.findById(cartRequestDto.productId())
                 .orElseThrow(() -> new BusinessException("Product not found"));
-
-        if (product.getAvailableQuantity() < cartRequestDto.quantity()) {
+        int productQuantity = product.getAvailableQuantity();
+        if (productQuantity < cartRequestDto.quantity()) {
             throw new BusinessException("Not enough quantity available");
         }
 
-        AppUser user = UserService.getCurrentUser();
+        AppUser user = userService.getCurrentUser();
         Cart userCart = user.getCart();
         if (userCart == null) {
             userCart = new Cart();
@@ -42,39 +41,50 @@ public class CartServiceImpl implements CartService {
             userCart = cartRepo.save(userCart);
         }
 
-        CartItem cartItem = new CartItem();
-        cartItem.setProduct(product);
-        cartItem.setCart(userCart);
-        cartItem.setQuantity(cartRequestDto.quantity());
-        cartItem = cartItemRepo.save(cartItem);
+        productQuantity -= cartRequestDto.quantity();
+        product.setAvailableQuantity(productQuantity);
 
-        return new CartResponseDto(cartItem.getId(), product.getId(), cartItem.getQuantity());
+        CartItem cartItem = userCart.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(product.getId()))
+                .findFirst()
+                .orElse(null);
+
+        if (cartItem != null) {
+            cartItem.setQuantity(cartItem.getQuantity() + cartRequestDto.quantity());
+        } else {
+            cartItem = new CartItem();
+            cartItem.setProduct(product);
+            cartItem.setQuantity(cartRequestDto.quantity());
+            userCart.addItem(cartItem);
+        }
+
+        return new CartItemResponseDto(cartItem.getId(), product.getId(), cartItem.getQuantity());
     }
 
-    @Override
-    public List<CartResponseDto> getAll() {
-        return List.of();
+    public CartResponseDto getCart() {
+        AppUser user = userService.getCurrentUser();
+        Cart userCart = user.getCart();
+        if (userCart == null) {
+            return null;
+        }
+        return new CartResponseDto(
+                userCart.getCartItems().stream()
+                        .map(cartItem -> new CartItemResponseDto(
+                                cartItem.getId(),
+                                cartItem.getProduct().getId(),
+                                cartItem.getQuantity()
+                        ))
+                        .toList()
+        );
     }
 
-    @Override
-    public CartResponseDto getById(Long id) {
-        return null;
-    }
-
-    @Override
-    public CartResponseDto save(CartRequestDto obj) {
-
-        return null;
-    }
-
-    @Override
-    public void deleteById(Long id) {
-
-    }
-
-    @Override
-    public CartResponseDto update(Long id, CartRequestDto obj) {
-        return null;
+    @Transactional
+    public void clearCart() {
+        AppUser user = userService.getCurrentUser();
+        Cart userCart = user.getCart();
+        if (userCart != null) {
+            userCart.clearItems();
+        }
     }
 
 
