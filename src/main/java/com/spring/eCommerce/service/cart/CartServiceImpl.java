@@ -27,7 +27,7 @@ public class CartServiceImpl implements CartService {
     public CartItemResponseDto addItemToCart(CartRequestDto cartRequestDto) {
 
         Product product = productRepo.findById(cartRequestDto.productId())
-                .orElseThrow(() -> new BusinessException("Product not found"));
+                .orElseThrow(() -> new BusinessException("Product with id { " + cartRequestDto.productId() + " } not found"));
         int productQuantity = product.getAvailableQuantity();
         if (productQuantity < cartRequestDto.quantity()) {
             throw new BusinessException("Not enough quantity available");
