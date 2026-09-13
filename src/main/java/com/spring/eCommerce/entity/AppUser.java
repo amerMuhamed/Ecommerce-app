@@ -7,7 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -23,6 +25,7 @@ public class AppUser extends Auditable {
     private String fullName;
     private String username;
     private String password;
+
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "profile_image_id", referencedColumnName = "id")
   private Image image;
@@ -37,6 +40,14 @@ public class AppUser extends Auditable {
     @JoinColumn(name = "cart_id", referencedColumnName = "id")
     private Cart cart;
 
+    @OneToMany(
+            mappedBy = "appUser",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
+    private List<Order> orders = new ArrayList<>();
+
     @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<TokenInfo> deviceTokens = new HashSet<>();
@@ -50,5 +61,10 @@ public class AppUser extends Auditable {
 
     public AppUser(Long id) {
         this.id = id;
+    }
+
+    public void addOrder(Order order) {
+        orders.add(order);
+        order.setAppUser(this);
     }
 }

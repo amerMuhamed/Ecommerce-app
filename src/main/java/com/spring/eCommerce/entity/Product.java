@@ -3,6 +3,7 @@ package com.spring.eCommerce.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class Product extends Auditable {
 
     private String description;
 
-    private Double price;
+    private BigDecimal price;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "product_id")

@@ -3,6 +3,7 @@ package com.spring.eCommerce.dto.product;
 import com.spring.eCommerce.dto.category.CategoryResponseDto;
 import com.spring.eCommerce.dto.image.ImageResponseDto;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -10,7 +11,7 @@ public record ProductResponseDto(
         Long id,
         String name,
         String description,
-        Double price,
+        BigDecimal price,
         List<ImageResponseDto> images,
         int availableQuantity,
         Date createdDate,
