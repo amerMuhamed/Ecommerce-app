@@ -1,7 +1,7 @@
 package com.spring.eCommerce.Controller;
 
 import com.spring.eCommerce.dto.api.ApiResponse;
-import com.spring.eCommerce.dto.cart.CartRequestDto;
+import com.spring.eCommerce.dto.cart.CartItemRequestDto;
 import com.spring.eCommerce.service.cart.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,9 +16,9 @@ public class CartController {
     private final CartService cartService;
 
     @PostMapping("/item")
-    public ResponseEntity<ApiResponse<?>> addProductToCart(@RequestBody CartRequestDto cartRequestDto) {
+    public ResponseEntity<ApiResponse<?>> addProductToCart(@RequestBody CartItemRequestDto cartItemRequestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                new ApiResponse<>(true, "Product added to cart successfully", cartService.addItemToCart(cartRequestDto))
+                new ApiResponse<>(true, "Product added to cart successfully", cartService.addItemToCart(cartItemRequestDto))
         );
     }
 

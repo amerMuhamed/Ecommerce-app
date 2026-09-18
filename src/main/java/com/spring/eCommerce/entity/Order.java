@@ -34,4 +34,14 @@ public class Order extends Auditable {
     private BigDecimal totalPrice;
 
     private String shippingAddress;
+
+    public void addOrderItem(OrderItem orderItem) {
+        orderItems.add(orderItem);
+        orderItem.setOrder(this);
+    }
+
+    public void removeOrderItem(OrderItem orderItem) {
+        orderItems.remove(orderItem);
+        orderItem.setOrder(null);
+    }
 }

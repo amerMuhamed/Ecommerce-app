@@ -1,7 +1,7 @@
 package com.spring.eCommerce.service.cart;
 
+import com.spring.eCommerce.dto.cart.CartItemRequestDto;
 import com.spring.eCommerce.dto.cart.CartItemResponseDto;
-import com.spring.eCommerce.dto.cart.CartRequestDto;
 import com.spring.eCommerce.dto.cart.CartResponseDto;
 import com.spring.eCommerce.entity.AppUser;
 import com.spring.eCommerce.entity.Cart;
@@ -24,37 +24,48 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
-    public CartItemResponseDto addItemToCart(CartRequestDto cartRequestDto) {
+    public CartItemResponseDto addItemToCart(CartItemRequestDto cartItemRequestDto) {
 
-        Product product = productRepo.findById(cartRequestDto.productId())
-                .orElseThrow(() -> new BusinessException("Product with id { " + cartRequestDto.productId() + " } not found"));
-        int productQuantity = product.getAvailableQuantity();
-        if (productQuantity < cartRequestDto.quantity()) {
-            throw new BusinessException("Not enough quantity available");
-        }
+        Product product = productRepo.findById(cartItemRequestDto.productId())
+                .orElseThrow(() ->
+                        new BusinessException("Product with id { " + cartItemRequestDto.productId() + " } not found"));
 
         AppUser user = userService.getCurrentUser();
+
         Cart userCart = user.getCart();
+
         if (userCart == null) {
             userCart = new Cart();
             user.setCart(userCart);
             userCart = cartRepo.save(userCart);
         }
 
-        productQuantity -= cartRequestDto.quantity();
-        product.setAvailableQuantity(productQuantity);
-
         CartItem cartItem = userCart.getCartItems().stream()
                 .filter(item -> item.getProduct().getId().equals(product.getId()))
                 .findFirst()
                 .orElse(null);
 
+        int requestedQuantity = cartItemRequestDto.quantity();
+
         if (cartItem != null) {
-            cartItem.setQuantity(cartItem.getQuantity() + cartRequestDto.quantity());
+            int newQuantity = cartItem.getQuantity() + requestedQuantity;
+
+            if (product.getAvailableQuantity() < newQuantity) {
+                throw new BusinessException("Not enough quantity available");
+            }
+
+            cartItem.setQuantity(newQuantity);
+
         } else {
+
+            if (product.getAvailableQuantity() < requestedQuantity) {
+                throw new BusinessException("Not enough quantity available");
+            }
+
             cartItem = new CartItem();
             cartItem.setProduct(product);
-            cartItem.setQuantity(cartRequestDto.quantity());
+            cartItem.setQuantity(requestedQuantity);
+
             userCart.addItem(cartItem);
         }
 
