@@ -7,10 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -23,6 +20,27 @@ public class OrderController {
     public ResponseEntity<ApiResponse<?>> createOrder(@Valid @RequestBody OrderRequestDto orderRequestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 new ApiResponse<>(true, "Order created successfully", orderService.createOrder(orderRequestDto.shippingAddress()))
+        );
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<?>> getMyOrders() {
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Orders retrieved successfully", orderService.getMyOrders())
+        );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<?>> getOrderById(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Order retrieved successfully", orderService.getOrderById(id))
+        );
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<?>> cancelOrder(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Order cancelled successfully", orderService.cancelOrder(id))
         );
     }
 }
