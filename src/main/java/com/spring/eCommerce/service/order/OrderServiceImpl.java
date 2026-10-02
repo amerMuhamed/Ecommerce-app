@@ -1,9 +1,10 @@
 package com.spring.eCommerce.service.order;
 
+import com.spring.eCommerce.Mapper.OrderMapper;
+import com.spring.eCommerce.dto.order.OrderResponseDto;
 import com.spring.eCommerce.entity.*;
 import com.spring.eCommerce.entity.enums.OrderStatus;
 import com.spring.eCommerce.repository.OrderRepo;
-import com.spring.eCommerce.repository.ProductRepo;
 import com.spring.eCommerce.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,11 +18,11 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepo orderRepo;
     private final UserService userService;
-    private final ProductRepo productRepo;
+    private final OrderMapper orderMapper;
 
     @Transactional
     @Override
-    public void createOrder(String shippingAddress) {
+    public OrderResponseDto createOrder(String shippingAddress) {
 
         AppUser appUser = userService.getCurrentUser();
         Cart cart = appUser.getCart();
@@ -72,8 +73,10 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalPrice(totalPrice);
         order.setAppUser(appUser);
         appUser.addOrder(order);
-        orderRepo.save(order);
+        Order savedOrder = orderRepo.save(order);
 
         cart.clearItems();
+
+        return orderMapper.toDto(savedOrder);
     }
 }
