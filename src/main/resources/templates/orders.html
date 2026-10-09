@@ -7,6 +7,7 @@
   <h1 class="page-title">My orders</h1>
   <div th:if="${ordersError}" class="alert alert-error" th:text="${ordersError}"></div>
   <div th:if="${param.placed}" class="alert alert-success">Thank you! Your order was placed successfully. Details are below.</div>
+  <div th:if="${orderNotice}" class="alert alert-info" th:text="${orderNotice}"></div>
 
   <div class="table-wrap" th:if="${orders != null && !orders.isEmpty()}">
     <table class="table">

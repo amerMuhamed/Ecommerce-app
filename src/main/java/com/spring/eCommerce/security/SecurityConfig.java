@@ -68,7 +68,7 @@ public class SecurityConfig {
                         // Provider callbacks are authenticated by provider signatures (e.g. Paymob HMAC), not JWT.
                         .requestMatchers(HttpMethod.POST, "/api/webhooks/payments/*").permitAll()
                         // Customer browser redirect after checkout; read-only and HMAC-verified.
-                        .requestMatchers(HttpMethod.GET, "/api/payments/return/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/payments/return/*", "/payments/return/*").permitAll()
                         .requestMatchers("/api/auth/registerAdmin").hasAuthority("admin")
                         // Product/category writes are admin-only (server-side enforcement).
                         .requestMatchers(HttpMethod.POST, "/api/products/**", "/api/categories/**").hasAuthority("admin")
