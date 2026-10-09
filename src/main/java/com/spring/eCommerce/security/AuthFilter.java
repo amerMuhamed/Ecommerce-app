@@ -37,6 +37,8 @@ public class AuthFilter extends OncePerRequestFilter {
     private static final Set<String> OPEN_PATHS = new HashSet<>(Arrays.asList(
             "/api/auth/login",
             "/api/auth/registerUser",
+            "/api/webhooks/payments/",
+            "/api/payments/return/",
             "/swagger-ui",
             "/v3/api-docs",
             "/swagger-resources",

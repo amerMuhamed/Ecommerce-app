@@ -4,6 +4,7 @@ import com.spring.eCommerce.exception.CustomAccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -55,6 +56,10 @@ public class SecurityConfig {
                                 "/api/auth/registerUser"
 
                         ).permitAll()
+                        // Provider callbacks are authenticated by provider signatures (e.g. Paymob HMAC), not JWT.
+                        .requestMatchers(HttpMethod.POST, "/api/webhooks/payments/*").permitAll()
+                        // Customer browser redirect after checkout; read-only and HMAC-verified.
+                        .requestMatchers(HttpMethod.GET, "/api/payments/return/*").permitAll()
                         .requestMatchers("/api/auth/registerAdmin").hasAuthority("admin")
                         .anyRequest().authenticated()
                 )

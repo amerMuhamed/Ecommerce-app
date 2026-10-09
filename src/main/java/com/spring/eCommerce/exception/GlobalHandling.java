@@ -100,7 +100,7 @@ public class GlobalHandling {
             IllegalArgumentException.class
     })
     public ResponseEntity<Object> handleIllegalArgument(
-            IllegalArgumentException ex,
+            Exception ex,
             HttpServletRequest request) {
 
         log.warn("{} -> bad request: {}", req(request), ex.getMessage());
