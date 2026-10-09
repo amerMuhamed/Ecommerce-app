@@ -27,6 +27,7 @@ public class Product extends Auditable {
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "product_id")
+    @OrderBy("id ASC")
     @Builder.Default
     private List<Image> images = new ArrayList<>();
 

@@ -131,7 +131,10 @@ public class AdminController {
             ProductResponseDto created = productService.save(new ProductRequestDto(
                     form.getName().trim(), form.getDescription(),
                     form.getPrice(), form.getAvailableQuantity(), form.getCategoryIds()));
-            attachImage(created.id(), form.getImageUrl(), imageFile);
+            String imageWarning = attachImage(created.id(), form.getImageUrl(), imageFile);
+            if (imageWarning != null) {
+                redirectAttributes.addFlashAttribute("adminError", imageWarning);
+            }
         } catch (BusinessException e) {
             model.addAttribute("categories", safeCategories());
             model.addAttribute("formError", e.getMessage());
@@ -191,7 +194,10 @@ public class AdminController {
             productService.update(id, new ProductRequestDto(
                     form.getName().trim(), form.getDescription(),
                     form.getPrice(), form.getAvailableQuantity(), form.getCategoryIds()));
-            attachImage(id, form.getImageUrl(), imageFile);
+            String imageWarning = attachImage(id, form.getImageUrl(), imageFile);
+            if (imageWarning != null) {
+                redirectAttributes.addFlashAttribute("adminError", imageWarning);
+            }
         } catch (BusinessException e) {
             model.addAttribute("categories", safeCategories());
             model.addAttribute("formError", e.getMessage());
@@ -277,32 +283,58 @@ public class AdminController {
     }
 
     /**
-     * Adds a product image from an uploaded file (Cloudinary) or a direct URL.
-     * Reuses the existing image-storage mechanism; failures are non-fatal.
+     * Sets the product's main image (the first one, which the shop displays) from an uploaded file
+     * (Cloudinary) or a direct URL. An uploaded file wins over the URL field.
+     * Failures never fail product creation/update; they are returned as a message for the admin instead.
      */
-    private void attachImage(Long productId, String imageUrl, MultipartFile imageFile) {
-        try {
-            Product product = productRepo.findById(productId).orElse(null);
-            if (product == null) {
-                return;
-            }
-            if (imageFile != null && !imageFile.isEmpty()) {
+    private String attachImage(Long productId, String imageUrl, MultipartFile imageFile) {
+        Product product = productRepo.findById(productId).orElse(null);
+        if (product == null) {
+            return null;
+        }
+        String newUrl;
+        String newPublicId = null;
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
                 Map<String, String> uploaded = imageService.uploadImage(imageFile);
-                product.getImages().add(Image.builder()
-                        .imageUrl(uploaded.get("imageUrl"))
-                        .publicId(uploaded.get("publicId"))
-                        .build());
-                productRepo.save(product);
-                return;
+                newUrl = uploaded.get("imageUrl");
+                newPublicId = uploaded.get("publicId");
+            } catch (Exception e) {
+                return "The image upload failed, so the photo was not changed. Please try again or use an image URL.";
             }
-            if (imageUrl != null && !imageUrl.isBlank()
-                    && product.getImages().stream().noneMatch(i -> imageUrl.isBlank()
-                            || imageUrl.trim().equals(i.getImageUrl()))) {
-                product.getImages().add(Image.builder().imageUrl(imageUrl.trim()).build());
-                productRepo.save(product);
+        } else if (imageUrl != null && !imageUrl.isBlank()) {
+            newUrl = imageUrl.trim();
+        } else {
+            return null;
+        }
+
+        List<Image> images = product.getImages();
+        String oldPublicId = null;
+        if (images.isEmpty()) {
+            images.add(Image.builder().imageUrl(newUrl).publicId(newPublicId).build());
+        } else {
+            Image main = images.get(0);
+            if (newUrl.equals(main.getImageUrl())) {
+                return null;
             }
+            oldPublicId = main.getPublicId();
+            main.setImageUrl(newUrl);
+            main.setPublicId(newPublicId);
+        }
+        productRepo.save(product);
+        deleteStoredImage(oldPublicId);
+        return null;
+    }
+
+    /** Best effort: a leftover file in Cloudinary must not block the product update. */
+    private void deleteStoredImage(String publicId) {
+        if (publicId == null || publicId.isBlank()) {
+            return;
+        }
+        try {
+            imageService.deleteImage(publicId);
         } catch (Exception ignored) {
-            // Image attachment must never fail product creation/update.
+            // The product already points to the new image.
         }
     }
 }
