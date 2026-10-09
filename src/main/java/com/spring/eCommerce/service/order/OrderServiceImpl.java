@@ -40,6 +40,9 @@ public class OrderServiceImpl implements OrderService {
 
             int cartItemQty = cartItem.getQuantity();
             Product product = cartItem.getProduct();
+            if (product.isDeleted()) {
+                throw new IllegalStateException("Product is no longer available: " + product.getName());
+            }
             int availableProductQty = product.getAvailableQuantity();
 
             if (cartItemQty <= 0) {

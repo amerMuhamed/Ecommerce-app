@@ -42,4 +42,9 @@ public class Product extends Auditable {
 
     private int availableQuantity;
 
+    /** Soft-delete flag: deleted products stay in the database so existing order items keep their reference. */
+    @Column(name = "deleted", nullable = false)
+    @Builder.Default
+    private boolean deleted = false;
+
 }

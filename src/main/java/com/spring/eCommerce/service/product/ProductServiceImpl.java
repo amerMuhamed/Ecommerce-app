@@ -6,6 +6,7 @@ import com.spring.eCommerce.dto.product.ProductRequestDto;
 import com.spring.eCommerce.dto.product.ProductResponseDto;
 import com.spring.eCommerce.entity.Product;
 import com.spring.eCommerce.exception.BusinessException;
+import com.spring.eCommerce.repository.CartItemRepo;
 import com.spring.eCommerce.repository.CategoryRepo;
 import com.spring.eCommerce.repository.ProductRepo;
 import lombok.RequiredArgsConstructor;
@@ -24,24 +25,24 @@ public class ProductServiceImpl implements ProductService {
 
     private final CategoryRepo categoryRepo;
 
+    private final CartItemRepo cartItemRepo;
+
 
     @Override
     public List<ProductResponseDto> getAll() {
-        return productRepo.findAll().stream().map(productMapper::toDto).toList();
+        return productRepo.findAllByDeletedFalse().stream().map(productMapper::toDto).toList();
     }
 
     @Override
     public ProductResponseDto getById(Long id) {
-        return productRepo.findById(id)
+        return productRepo.findByIdAndDeletedFalse(id)
                 .map(productMapper::toDto)
                 .orElseThrow(() -> new BusinessException("Product not found with id: " + id));
     }
 
     public ProductResponseDto getByName(String name) {
-        if (productRepo.findByName(name) != null) {
-            return productMapper.toDto(productRepo.findByName(name));
-        }
-        return null;
+        Product product = productRepo.findByNameAndDeletedFalse(name);
+        return product == null ? null : productMapper.toDto(product);
     }
 
     @Override
@@ -55,26 +56,38 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public void deleteByName(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Product name must not be null or empty for deletion.");
         }
-        Product productToDelete = productRepo.findByName(name);
+        Product productToDelete = productRepo.findByNameAndDeletedFalse(name);
         if (productToDelete == null) {
             throw new BusinessException("Product not found with name: " + name);
         }
-        productRepo.deleteById(productToDelete.getId());
+        softDelete(productToDelete);
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Product ID must not be null for deletion.");
         }
-        if (!productRepo.existsById(id)) {
-            throw new BusinessException("Product not found with id: " + id);
-        }
-        productRepo.deleteById(id);
+        Product productToDelete = productRepo.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new BusinessException("Product not found with id: " + id));
+        softDelete(productToDelete);
+    }
+
+    /**
+     * Products are referenced by order items, so they are flagged as deleted instead of removed.
+     * The product disappears from the shop, its categories and every cart; past orders still show it.
+     */
+    private void softDelete(Product product) {
+        product.setDeleted(true);
+        product.getCategories().clear();
+        cartItemRepo.deleteByProductId(product.getId());
+        productRepo.save(product);
     }
 
     @Override
@@ -85,7 +98,7 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException("Product ID must not be null for update.");
         }
 
-        Product existingProduct = productRepo.findById(id)
+        Product existingProduct = productRepo.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new BusinessException("Product not found with ID: " + id));
         if (obj.name() != null) {
             existingProduct.setName(obj.name());

@@ -149,7 +149,9 @@ class StorefrontSecurityTest {
         mockMvc.perform(delete("/api/products/" + id)
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
-        assertTrue(productRepo.findById(id).isEmpty());
+        // Soft delete: the row is kept for order history but hidden from the shop.
+        assertTrue(productRepo.findById(id).orElseThrow().isDeleted());
+        assertTrue(productRepo.findByIdAndDeletedFalse(id).isEmpty());
     }
 
     @Test

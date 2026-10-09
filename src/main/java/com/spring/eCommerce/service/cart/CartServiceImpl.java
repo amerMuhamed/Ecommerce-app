@@ -26,7 +26,7 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartItemResponseDto addItemToCart(CartItemRequestDto cartItemRequestDto) {
 
-        Product product = productRepo.findById(cartItemRequestDto.productId())
+        Product product = productRepo.findByIdAndDeletedFalse(cartItemRequestDto.productId())
                 .orElseThrow(() ->
                         new BusinessException("Product with id { " + cartItemRequestDto.productId() + " } not found"));
 
@@ -104,7 +104,7 @@ public class CartServiceImpl implements CartService {
         if (quantity <= 0) {
             throw new BusinessException("Quantity must be greater than zero");
         }
-        Product product = productRepo.findById(productId)
+        Product product = productRepo.findByIdAndDeletedFalse(productId)
                 .orElseThrow(() ->
                         new BusinessException("Product with id { " + productId + " } not found"));
         if (product.getAvailableQuantity() < quantity) {
