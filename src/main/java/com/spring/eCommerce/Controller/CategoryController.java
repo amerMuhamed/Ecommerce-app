@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,6 +34,7 @@ public class CategoryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<ApiResponse<?>> save(@Valid @RequestBody CategoryRequestDto categoryRequestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 new ApiResponse<>(true, "Category created successfully", categoryService.save(categoryRequestDto))
@@ -40,6 +42,7 @@ public class CategoryController {
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<ApiResponse<?>> update(
             @PathVariable Long id,
             @RequestBody CategoryRequestDto categoryRequestDto
@@ -50,6 +53,7 @@ public class CategoryController {
     }
 
     @PatchMapping("/{categoryId}/addProducts")
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<ApiResponse<?>> addProducts(@PathVariable Long categoryId, @RequestBody List<Long> productIds) {
         categoryService.addProducts(categoryId, productIds);
         return ResponseEntity.ok(
@@ -58,6 +62,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<ApiResponse<?>> deleteById(@PathVariable Long id) {
         categoryService.deleteById(id);
         return ResponseEntity.ok(
@@ -66,6 +71,7 @@ public class CategoryController {
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<ApiResponse<?>> deleteByName(@Valid @RequestParam String name) {
         categoryService.deleteByName(name);
         return ResponseEntity.ok(

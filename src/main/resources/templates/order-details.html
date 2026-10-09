@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Order details')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <p style="margin-top:20px"><a th:href="@{/orders}">← All orders</a></p>
+  <h1 class="page-title" th:text="'Order #' + ${order.id}">Order</h1>
+  <div th:if="${param.placed}" class="alert alert-success">Thank you! Your order was placed successfully.</div>
+  <div th:if="${orderNotice}" class="alert alert-info" th:text="${orderNotice}"></div>
+
+  <p><span class="status" th:classappend="${order.orderStatus}" th:text="${order.orderStatus}">PENDING</span></p>
+  <p><strong>Delivery to:</strong> <span th:text="${order.shippingAddress}"></span></p>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Product</th><th>Qty</th><th>Unit price</th><th>Subtotal</th></tr></thead>
+      <tbody>
+      <tr th:each="i : ${order.items}">
+        <td th:text="${i.productName}">Product</td>
+        <td th:text="${i.quantity}">1</td>
+        <td><span th:text="${#numbers.formatDecimal(i.unitPrice, 1, 2)}"></span> EGP</td>
+        <td><span th:text="${#numbers.formatDecimal(i.subTotal, 1, 2)}"></span> EGP</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-size:1.3rem;font-weight:800;margin:14px 0">Total: <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)}"></span> EGP</div>
+
+  <div th:if="${payment != null}" class="alert alert-info">
+    Payment via <strong th:text="${payment.provider}"></strong> —
+    status: <strong th:text="${payment.status}"></strong>.
+    <span th:if="${payment.checkoutUrl != null && (payment.status == T(com.spring.eCommerce.entity.enums.PaymentStatus).REQUIRES_ACTION || payment.status == T(com.spring.eCommerce.entity.enums.PaymentStatus).PENDING)}">
+      <a th:href="${payment.checkoutUrl}" target="_blank" rel="noopener">Continue to secure payment →</a>
+    </span>
+    <span th:if="${payment.status == T(com.spring.eCommerce.entity.enums.PaymentStatus).SUCCEEDED}"> Payment confirmed. Thank you!</span>
+  </div>
+
+  <form th:action="@{/orders/{id}/cancel(id=${order.id})}" method="post"
+        th:if="${order.orderStatus == T(com.spring.eCommerce.entity.enums.OrderStatus).PENDING}"
+        onsubmit="return confirm('Cancel this order?')">
+    <button class="btn btn-danger" type="submit">Cancel order</button>
+  </form>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

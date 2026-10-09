@@ -98,5 +98,45 @@ public class CartServiceImpl implements CartService {
         }
     }
 
+    @Override
+    @Transactional
+    public CartItemResponseDto updateItemQuantity(Long productId, int quantity) {
+        if (quantity <= 0) {
+            throw new BusinessException("Quantity must be greater than zero");
+        }
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() ->
+                        new BusinessException("Product with id { " + productId + " } not found"));
+        if (product.getAvailableQuantity() < quantity) {
+            throw new BusinessException("Not enough quantity available");
+        }
+        AppUser user = userService.getCurrentUser();
+        Cart userCart = user.getCart();
+        if (userCart == null) {
+            throw new BusinessException("Cart is empty");
+        }
+        CartItem cartItem = userCart.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException("Product is not in the cart"));
+        cartItem.setQuantity(quantity);
+        return new CartItemResponseDto(cartItem.getId(), productId, quantity);
+    }
+
+    @Override
+    @Transactional
+    public void removeItem(Long productId) {
+        AppUser user = userService.getCurrentUser();
+        Cart userCart = user.getCart();
+        if (userCart == null) {
+            throw new BusinessException("Cart is empty");
+        }
+        CartItem cartItem = userCart.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException("Product is not in the cart"));
+        userCart.removeItem(cartItem);
+    }
+
 
 }

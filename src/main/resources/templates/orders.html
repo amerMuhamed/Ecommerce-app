@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('My Orders')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <h1 class="page-title">My orders</h1>
+  <div th:if="${ordersError}" class="alert alert-error" th:text="${ordersError}"></div>
+  <div th:if="${param.placed}" class="alert alert-success">Thank you! Your order was placed successfully. Details are below.</div>
+
+  <div class="table-wrap" th:if="${orders != null && !orders.isEmpty()}">
+    <table class="table">
+      <thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Total</th><th></th></tr></thead>
+      <tbody>
+      <tr th:each="o : ${orders}">
+        <td th:text="'#' + ${o.id}">#1</td>
+        <td th:text="${o.createdDate}">date</td>
+        <td><span class="status" th:classappend="${o.orderStatus}" th:text="${o.orderStatus}">PENDING</span></td>
+        <td><span th:text="${#numbers.formatDecimal(o.totalPrice, 1, 2)}"></span> EGP</td>
+        <td><a th:href="@{/orders/{id}(id=${o.id})}">View →</a></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="empty-state" th:if="${orders == null || orders.isEmpty()}">
+    <div class="big">✦</div>
+    <h2>No orders yet</h2>
+    <p>Your orders will appear here after checkout.</p>
+    <a class="btn btn-primary" th:href="@{/shop}">Start shopping</a>
+  </div>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Checkout')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <h1 class="page-title">Checkout</h1>
+  <p class="page-sub">Review your items and tell us where to deliver.</p>
+  <div th:if="${checkoutError}" class="alert alert-error" th:text="${checkoutError}"></div>
+
+  <div class="details-grid">
+    <div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Product</th><th>Qty</th><th>Total</th></tr></thead>
+          <tbody>
+          <tr th:each="l : ${lines}">
+            <td th:text="${l.name}">Name</td>
+            <td th:text="${l.quantity}">1</td>
+            <td><span th:text="${#numbers.formatDecimal(l.lineTotal, 1, 2)}"></span> EGP</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="font-size:1.3rem;font-weight:800;margin-top:14px">Total: <span th:text="${#numbers.formatDecimal(subtotal, 1, 2)}"></span> EGP</div>
+    </div>
+    <div>
+      <form class="form-card" style="margin:0;max-width:none" th:action="@{/checkout}" th:object="${checkoutForm}" method="post">
+        <div class="field">
+          <label for="addr">Shipping address</label>
+          <textarea id="addr" th:field="*{shippingAddress}" rows="3" placeholder="Street, building, city…" required></textarea>
+          <div class="field-error" th:if="${#fields.hasErrors('shippingAddress')}" th:errors="*{shippingAddress}"></div>
+        </div>
+        <div class="field">
+          <label for="phone">Phone number</label>
+          <input id="phone" th:field="*{phone}" type="tel" placeholder="01xxxxxxxxx"/>
+          <div class="hint">Required for online card payment (Paymob).</div>
+        </div>
+        <div class="field">
+          <label>Payment method</label>
+          <label class="check-chip"><input type="radio" th:field="*{paymentMethod}" value="cod"/> Cash on delivery</label>
+          <label class="check-chip"><input type="radio" th:field="*{paymentMethod}" value="paymob"/> Pay online (Paymob)</label>
+        </div>
+        <button class="btn btn-accent" type="submit" style="width:100%">Place Order</button>
+        <p class="hint" style="text-align:center">You will see a confirmation right after. Online payment opens Paymob's secure checkout.</p>
+      </form>
+    </div>
+  </div>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

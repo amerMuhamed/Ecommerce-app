@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Welcome')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <span class="hero-badge">✦ New parents' favourite</span>
+      <h1>Gentle essentials for your little one</h1>
+      <p class="lead">From first bodysuits to bedtime swaddles — soft, safe, premium baby essentials delivered to your door.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" th:href="@{/shop}">Shop Now</a>
+        <a class="btn btn-ghost" th:href="@{/#categories}">Explore Categories</a>
+      </div>
+      <div class="trust-row">
+        <span class="trust-chip">✓ Dermatologist-tested picks</span>
+        <span class="trust-chip">✓ Cash on delivery</span>
+        <span class="trust-chip">✓ Secure Paymob checkout</span>
+      </div>
+    </div>
+    <div class="hero-media">
+      <img src="https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=1000&q=80"
+           alt="A newborn baby wrapped softly in a cream blanket"
+           onerror="this.onerror=null;this.src='/images/placeholder.svg'"/>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div th:if="${param.logout}" class="alert alert-success">You have been logged out. See you soon!</div>
+
+  <section class="section" id="categories" th:if="${categories != null && !categories.isEmpty()}">
+    <div class="section-head"><h2>Shop by category</h2><a th:href="@{/shop}">View all →</a></div>
+    <div class="cat-grid">
+      <a class="cat-card" th:each="c : ${categories}" th:href="@{/shop(category=${c.id})}">
+        <div class="cat-icon">✦</div>
+        <h3 th:text="${c.name}">Category</h3>
+        <span>Shop now →</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section" th:if="${featuredProducts != null && !featuredProducts.isEmpty()}">
+    <div class="section-head"><h2>Best sellers</h2><a th:href="@{/shop}">Shop all →</a></div>
+    <div class="product-grid">
+      <div th:each="product : ${featuredProducts}" th:insert="~{layout :: productCard}"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="promo-grid">
+      <div class="promo sage">
+        <h3>Newborn starter kit</h3>
+        <p>Everything a new parent needs in one gentle gift-ready box.</p>
+        <a class="btn btn-ghost" th:href="@{/shop(q='gift')}">Shop gift sets</a>
+      </div>
+      <div class="promo peach">
+        <h3>Soft on skin, kind to wallets</h3>
+        <p>Premium fabrics and thoughtful design at family-friendly prices.</p>
+        <a class="btn btn-ghost" th:href="@{/shop(sort='price-asc')}">Shop best value</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" th:if="${newArrivals != null && !newArrivals.isEmpty()}">
+    <div class="section-head"><h2>New arrivals</h2><a th:href="@{/shop}">Shop all →</a></div>
+    <div class="product-grid">
+      <div th:each="product : ${newArrivals}" th:insert="~{layout :: productCard}"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>Why parents love lulumi</h2></div>
+    <div class="value-grid">
+      <div class="value-card"><h3>✓ Trusted quality</h3><p>Carefully selected materials, gentle on newborn skin.</p></div>
+      <div class="value-card"><h3>✓ Fair prices in EGP</h3><p>Premium feel without the premium markup.</p></div>
+      <div class="value-card"><h3>✓ Easy ordering</h3><p>Cash on delivery or secure online payment with Paymob.</p></div>
+      <div class="value-card"><h3>✓ Made for families</h3><p>Simple tracking from cart to doorstep.</p></div>
+    </div>
+  </section>
+</div>
+
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

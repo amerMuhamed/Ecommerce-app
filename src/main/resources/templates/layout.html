@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title th:text="${title} + ' · lulumi'">lulumi · gentle baby essentials</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" th:href="@{/css/lulumi.css}"/>
+  <link rel="icon" th:href="@{/images/placeholder.svg}"/>
+</head>
+<body>
+
+<header th:fragment="header" class="site-header">
+  <div class="header-inner">
+    <a class="brand" th:href="@{/}"><span class="brand-mark">◠</span> lulumi</a>
+    <button class="menu-toggle" type="button" aria-label="Toggle navigation" onclick="document.getElementById('mainNav').classList.toggle('open')">☰</button>
+    <nav class="main-nav" id="mainNav">
+      <a th:href="@{/}">Home</a>
+      <a th:href="@{/shop}">Shop</a>
+      <a th:href="@{/shop(sort='price-asc')}">Best Value</a>
+      <a th:href="@{/orders}" sec:authorize="isAuthenticated()">My Orders</a>
+      <a th:href="@{/account}" sec:authorize="isAuthenticated()">Account</a>
+      <a th:href="@{/admin}" sec:authorize="hasAuthority('admin')">✦ Admin</a>
+    </nav>
+    <div class="header-actions">
+      <a class="cart-pill" th:href="@{/cart}" sec:authorize="isAuthenticated()" aria-label="View cart">
+        Cart <span th:text="${cartCount ?: 0}">0</span>
+      </a>
+      <a class="btn btn-ghost btn-small hide-mobile" th:href="@{/login}" sec:authorize="!isAuthenticated()">Log in</a>
+      <a class="btn btn-primary btn-small hide-mobile" th:href="@{/register}" sec:authorize="!isAuthenticated()">Sign up</a>
+      <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" style="display:inline">
+        <button class="btn btn-ghost btn-small" type="submit">Log out</button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<div th:fragment="productCard" class="product-card">
+  <div class="product-media">
+    <a th:href="@{/product/{id}(id=${product.id})}">
+      <img th:src="${product.images != null && !product.images.isEmpty() ? product.images[0].imageUrl : '/images/placeholder.svg'}"
+           th:alt="${product.name}" loading="lazy"
+           onerror="this.onerror=null;this.src='/images/placeholder.svg'"/>
+    </a>
+    <span class="badge-stock in-stock" th:if="${product.availableQuantity > 5}">In stock</span>
+    <span class="badge-stock low-stock" th:if="${product.availableQuantity <= 5 && product.availableQuantity > 0}">Only a few left</span>
+    <span class="badge-stock out-stock" th:if="${product.availableQuantity <= 0}">Out of stock</span>
+  </div>
+  <div class="product-body">
+    <h3><a th:href="@{/product/{id}(id=${product.id})}" th:text="${product.name}">Product</a></h3>
+    <div class="product-cat" th:if="${product.categories != null && !product.categories.isEmpty()}"
+         th:text="${product.categories[0].name}">Category</div>
+    <div class="product-price"><span th:text="${#numbers.formatDecimal(product.price, 1, 2)}">0.00</span> <span class="currency">EGP</span></div>
+    <div class="product-actions">
+      <a class="btn btn-primary btn-small" th:href="@{/product/{id}(id=${product.id})}">View</a>
+    </div>
+  </div>
+</div>
+
+<footer th:fragment="footer" class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <h4>lulumi</h4>
+      <p>Gentle, premium essentials for babies and the parents who love them. Thoughtfully made, fairly priced, delivered across Egypt.</p>
+    </div>
+    <div>
+      <h4>Shop</h4>
+      <p><a th:href="@{/shop}">All products</a><br/>
+      <a th:href="@{/shop(sort='price-asc')}">Best value</a><br/>
+      <a th:href="@{/shop(sort='name-asc')}">Browse A–Z</a><br/>
+      <a th:href="@{/cart}">Your cart</a></p>
+    </div>
+    <div>
+      <h4>Account</h4>
+      <p><a th:href="@{/login}">Log in</a><br/>
+      <a th:href="@{/register}">Create account</a><br/>
+      <a th:href="@{/orders}">Order history</a><br/>
+      <a th:href="@{/account}">Account details</a></p>
+    </div>
+    <div>
+      <h4>Help</h4>
+      <p>Cash on delivery available.<br/>Secure online payment via Paymob.<br/>Contact: amermuhamedamer@gmail.com<br/>Cairo, Egypt</p>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 lulumi · gentle baby essentials · prices in EGP</div>
+</footer>
+
+</body>
+</html>
+

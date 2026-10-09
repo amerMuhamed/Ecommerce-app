@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Order details')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <p style="margin-top:20px"><a th:href="@{/admin/orders}">← All orders</a></p>
+  <h1 class="page-title" th:text="'Order #' + ${order.id}">Order</h1>
+  <div th:if="${adminNotice}" class="alert alert-success" th:text="${adminNotice}"></div>
+  <div th:if="${adminError}" class="alert alert-error" th:text="${adminError}"></div>
+
+  <p><span class="status" th:classappend="${order.orderStatus}" th:text="${order.orderStatus}"></span></p>
+  <ul class="meta-list">
+    <li><strong>Customer:</strong> <span th:text="${order.appUser != null ? order.appUser.username + ' (' + order.appUser.fullName + ')' : '—'}"></span></li>
+    <li><strong>Delivery to:</strong> <span th:text="${order.shippingAddress}"></span></li>
+    <li><strong>Placed:</strong> <span th:text="${order.createdDate}"></span></li>
+  </ul>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Product</th><th>Qty</th><th>Unit price</th><th>Subtotal</th></tr></thead>
+      <tbody>
+      <tr th:each="i : ${orderDto.items}">
+        <td th:text="${i.productName}"></td>
+        <td th:text="${i.quantity}"></td>
+        <td><span th:text="${#numbers.formatDecimal(i.unitPrice, 1, 2)}"></span> EGP</td>
+        <td><span th:text="${#numbers.formatDecimal(i.subTotal, 1, 2)}"></span> EGP</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-size:1.3rem;font-weight:800;margin:14px 0">Total: <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)}"></span> EGP</div>
+
+  <h2>Payment</h2>
+  <div class="table-wrap" th:if="${payments != null && !payments.isEmpty()}">
+    <table class="table">
+      <thead><tr><th>Provider</th><th>Status</th><th>Amount</th><th>Reference</th></tr></thead>
+      <tbody>
+      <tr th:each="pay : ${payments}">
+        <td th:text="${pay.provider}"></td>
+        <td><span class="status" th:classappend="${pay.status}" th:text="${pay.status}"></span></td>
+        <td><span th:text="${#numbers.formatDecimal(pay.amount, 1, 2)} + ' ' + ${pay.currency}"></span></td>
+        <td th:text="${pay.providerPaymentId}"></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <p th:if="${payments == null || payments.isEmpty()}">No online payment for this order (cash on delivery).</p>
+  <p class="hint">Payment status is only ever changed by verified provider webhooks — never manually.</p>
+
+  <h2>Update fulfilment status</h2>
+  <form th:action="@{/admin/orders/{id}/status(id=${order.id})}" method="post" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <select name="status" aria-label="New status">
+      <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${s == order.orderStatus}"></option>
+    </select>
+    <button class="btn btn-primary btn-small" type="submit">Update status</button>
+  </form>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

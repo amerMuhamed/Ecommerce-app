@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Admin dashboard')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <h1 class="page-title">✦ Admin dashboard</h1>
+  <p class="page-sub">Store overview from live data.</p>
+  <nav class="admin-nav">
+    <a class="btn btn-primary btn-small" th:href="@{/admin}">Dashboard</a>
+    <a class="btn btn-ghost btn-small" th:href="@{/admin/products}">Products</a>
+    <a class="btn btn-ghost btn-small" th:href="@{/admin/products/new}">+ Add product</a>
+    <a class="btn btn-ghost btn-small" th:href="@{/admin/orders}">Orders</a>
+    <a class="btn btn-ghost btn-small" th:href="@{/shop}">View storefront</a>
+  </nav>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="num" th:text="${productCount}">0</div><div class="lbl">Products</div></div>
+    <div class="stat-card"><div class="num" th:text="${lowStockCount}">0</div><div class="lbl">Low-stock (≤ 5)</div></div>
+    <div class="stat-card"><div class="num" th:text="${orderCount}">0</div><div class="lbl">Total orders</div></div>
+    <div class="stat-card"><div class="num" th:text="${pendingOrderCount}">0</div><div class="lbl">Pending orders</div></div>
+  </div>
+
+  <div class="details-grid">
+    <div>
+      <h2>Low-stock products</h2>
+      <div class="table-wrap" th:if="${lowStockProducts != null && !lowStockProducts.isEmpty()}">
+        <table class="table">
+          <thead><tr><th>Product</th><th>Stock</th><th></th></tr></thead>
+          <tbody>
+          <tr th:each="p : ${lowStockProducts}">
+            <td th:text="${p.name}"></td>
+            <td th:text="${p.availableQuantity}"></td>
+            <td><a th:href="@{/admin/products/{id}/edit(id=${p.id})}">Restock →</a></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p th:if="${lowStockProducts == null || lowStockProducts.isEmpty()}">All products are well stocked. 🎉</p>
+    </div>
+    <div>
+      <h2>Recent orders</h2>
+      <div class="table-wrap" th:if="${recentOrders != null && !recentOrders.isEmpty()}">
+        <table class="table">
+          <thead><tr><th>Order</th><th>Status</th><th>Total</th><th></th></tr></thead>
+          <tbody>
+          <tr th:each="o : ${recentOrders}">
+            <td th:text="'#' + ${o.id}"></td>
+            <td><span class="status" th:classappend="${o.orderStatus}" th:text="${o.orderStatus}"></span></td>
+            <td><span th:text="${#numbers.formatDecimal(o.totalPrice, 1, 2)}"></span> EGP</td>
+            <td><a th:href="@{/admin/orders/{id}(id=${o.id})}">View →</a></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <p th:if="${recentOrders == null || recentOrders.isEmpty()}">No orders yet.</p>
+    </div>
+  </div>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

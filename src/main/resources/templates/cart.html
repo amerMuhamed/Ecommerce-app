@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Your Cart')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <h1 class="page-title">Your cart</h1>
+  <div th:if="${cartError}" class="alert alert-error" th:text="${cartError}"></div>
+
+  <div th:if="${lines != null && !lines.isEmpty()}">
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Product</th><th>Price</th><th>Quantity</th><th>Total</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="l : ${lines}">
+          <td>
+            <a th:href="@{/product/{id}(id=${l.productId})}" style="display:flex;gap:12px;align-items:center">
+              <img class="thumb" th:src="${l.imageUrl != null ? l.imageUrl : '/images/placeholder.svg'}"
+                   th:alt="${l.name}" onerror="this.onerror=null;this.src='/images/placeholder.svg'"/>
+              <span th:text="${l.name}">Name</span>
+            </a>
+          </td>
+          <td><span th:text="${#numbers.formatDecimal(l.price, 1, 2)}"></span> EGP</td>
+          <td>
+            <form th:action="@{/cart/update}" method="post" style="display:flex;gap:8px;align-items:center">
+              <input type="hidden" name="productId" th:value="${l.productId}"/>
+              <input type="number" name="quantity" th:value="${l.quantity}" min="1"
+                     th:max="${l.stock}" style="width:80px;border:1.5px solid var(--line);border-radius:10px;padding:8px" required
+                     aria-label="Quantity"/>
+              <button class="btn btn-ghost btn-small" type="submit">Update</button>
+            </form>
+          </td>
+          <td><strong><span th:text="${#numbers.formatDecimal(l.lineTotal, 1, 2)}"></span> EGP</strong></td>
+          <td>
+            <form th:action="@{/cart/remove}" method="post">
+              <input type="hidden" name="productId" th:value="${l.productId}"/>
+              <button class="link-btn" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;justify-content:space-between;margin:22px 0;flex-wrap:wrap">
+      <form th:action="@{/cart/clear}" method="post">
+        <button class="link-btn" type="submit">Clear cart</button>
+      </form>
+      <div style="text-align:right">
+        <div style="font-size:1.3rem;font-weight:800">Subtotal: <span th:text="${#numbers.formatDecimal(subtotal, 1, 2)}"></span> EGP</div>
+        <a class="btn btn-accent" th:href="@{/checkout}" style="margin-top:10px">Proceed to Checkout →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" th:if="${lines == null || lines.isEmpty()}">
+    <div class="big">◠</div>
+    <h2>Your cart is empty</h2>
+    <p>Let's find something soft and lovely for your little one.</p>
+    <a class="btn btn-primary" th:href="@{/shop}">Start shopping</a>
+  </div>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

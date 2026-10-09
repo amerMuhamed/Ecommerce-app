@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Manage products')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <h1 class="page-title">Manage products</h1>
+  <nav class="admin-nav">
+    <a class="btn btn-ghost btn-small" th:href="@{/admin}">Dashboard</a>
+    <a class="btn btn-primary btn-small" th:href="@{/admin/products}">Products</a>
+    <a class="btn btn-ghost btn-small" th:href="@{/admin/products/new}">+ Add product</a>
+    <a class="btn btn-ghost btn-small" th:href="@{/admin/orders}">Orders</a>
+  </nav>
+  <div th:if="${adminNotice}" class="alert alert-success" th:text="${adminNotice}"></div>
+  <div th:if="${adminError}" class="alert alert-error" th:text="${adminError}"></div>
+
+  <div class="table-wrap" th:if="${products != null && !products.isEmpty()}">
+    <table class="table">
+      <thead><tr><th></th><th>Name</th><th>Price</th><th>Stock</th><th>Categories</th><th></th></tr></thead>
+      <tbody>
+      <tr th:each="p : ${products}">
+        <td><img class="thumb" th:src="${p.images != null && !p.images.isEmpty() ? p.images[0].imageUrl : '/images/placeholder.svg'}"
+                 th:alt="${p.name}" onerror="this.onerror=null;this.src='/images/placeholder.svg'"/></td>
+        <td><strong th:text="${p.name}"></strong></td>
+        <td><span th:text="${#numbers.formatDecimal(p.price, 1, 2)}"></span> EGP</td>
+        <td th:text="${p.availableQuantity}"></td>
+        <td><span th:each="c, iter : ${p.categories}" th:text="${c.name + (iter.last ? '' : ', ')}"></span></td>
+        <td style="white-space:nowrap">
+          <a class="btn btn-ghost btn-small" th:href="@{/admin/products/{id}/edit(id=${p.id})}">Edit</a>
+          <form th:action="@{/admin/products/{id}/delete(id=${p.id})}" method="post" style="display:inline"
+                onsubmit="return confirm('Delete this product permanently?')">
+            <button class="btn btn-danger btn-small" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="empty-state" th:if="${products == null || products.isEmpty()}">
+    <div class="big">✦</div>
+    <h2>No products yet</h2>
+    <a class="btn btn-primary" th:href="@{/admin/products/new}">Add your first product</a>
+  </div>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

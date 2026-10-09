@@ -6,6 +6,7 @@ import com.spring.eCommerce.service.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,6 +33,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<ApiResponse<?>> save(@RequestBody ProductRequestDto productRequestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 new ApiResponse<>(true, "Product created successfully", productService.save(productRequestDto))
@@ -39,6 +41,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<ApiResponse<?>> update(@PathVariable Long id, @RequestBody ProductRequestDto productRequestDto) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 new ApiResponse<>(true, "Product updated successfully", productService.update(id, productRequestDto))
@@ -46,12 +49,14 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<ApiResponse<?>> deleteById(@PathVariable Long id) {
         productService.deleteById(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Product deleted successfully", null));
     }
 
     @DeleteMapping
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<ApiResponse<?>> deleteByName(@RequestParam String name) {
         productService.deleteByName(name);
         return ResponseEntity.ok(new ApiResponse<>(true, "Product deleted successfully", null));

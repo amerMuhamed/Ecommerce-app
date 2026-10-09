@@ -12,4 +12,8 @@ public interface CartService {
 
     void clearCart();
 
+    CartItemResponseDto updateItemQuantity(Long productId, int quantity);
+
+    void removeItem(Long productId);
+
 }

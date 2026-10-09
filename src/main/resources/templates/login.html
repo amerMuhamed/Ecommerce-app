@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Log in')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <form class="form-card" th:action="@{/login}" method="post">
+    <h1 class="page-title" style="margin-top:0">Welcome back</h1>
+    <p class="page-sub">Log in to shop, check out and track orders.</p>
+    <div th:if="${param.error}" class="alert alert-error">Wrong username or password. Please try again.</div>
+    <div th:if="${param.required}" class="alert alert-info">Please log in to continue.</div>
+    <div th:if="${param.registered}" class="alert alert-success">Account created! Please log in.</div>
+    <div class="field">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocomplete="username" required autofocus/>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required/>
+    </div>
+    <button class="btn btn-primary" type="submit" style="width:100%">Log in</button>
+    <p style="text-align:center">New to lulumi? <a th:href="@{/register}">Create an account</a></p>
+  </form>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

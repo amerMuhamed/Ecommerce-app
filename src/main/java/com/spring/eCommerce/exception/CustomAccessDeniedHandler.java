@@ -21,11 +21,23 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
     private final ObjectMapper objectMapper;
 
+    private static boolean acceptsHtml(HttpServletRequest request) {
+        String accept = request.getHeader("Accept");
+        return accept != null && accept.contains("text/html");
+    }
+
     @Override
     public void handle(HttpServletRequest request,
                        HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
         log.warn("{} {} -> access denied", request.getMethod(), request.getRequestURI());
+
+        // Browser navigation to protected pages (e.g. /admin/** as customer) shows
+        // the friendly 403 page; API clients keep the JSON 403 contract.
+        if (!request.getRequestURI().startsWith("/api/") && acceptsHtml(request)) {
+            response.sendRedirect(request.getContextPath() + "/error?forbidden");
+            return;
+        }
 
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

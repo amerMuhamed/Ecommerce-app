@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head(${productForm.id != null ? 'Edit product' : 'Add product'})}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <p style="margin-top:20px"><a th:href="@{/admin/products}">← All products</a></p>
+  <form class="form-card wide" style="margin-top:10px"
+        th:action="${productForm.id != null} ? @{/admin/products/{id}/edit(id=${productForm.id})} : @{/admin/products}"
+        th:object="${productForm}" method="post" enctype="multipart/form-data">
+    <h1 class="page-title" style="margin-top:0" th:text="${productForm.id != null ? 'Edit product' : 'Add product'}">Add product</h1>
+    <div th:if="${formError}" class="alert alert-error" th:text="${formError}"></div>
+
+    <div class="field">
+      <label for="name">Product name</label>
+      <input id="name" th:field="*{name}" type="text" required maxlength="120"/>
+      <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+    </div>
+    <div class="field">
+      <label for="desc">Description</label>
+      <textarea id="desc" th:field="*{description}" rows="4" placeholder="Soft, gentle, …"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="field">
+        <label for="price">Price (EGP)</label>
+        <input id="price" th:field="*{price}" type="number" step="0.01" min="0.01" required/>
+        <div class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
+      </div>
+      <div class="field">
+        <label for="stock">Stock quantity</label>
+        <input id="stock" th:field="*{availableQuantity}" type="number" step="1" min="0" required/>
+        <div class="field-error" th:if="${#fields.hasErrors('availableQuantity')}" th:errors="*{availableQuantity}"></div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Categories</label>
+      <div class="check-row">
+        <label class="check-chip" th:each="c : ${categories}">
+          <input type="checkbox" th:field="*{categoryIds}" th:value="${c.id}"/>
+          <span th:text="${c.name}"></span>
+        </label>
+      </div>
+      <div class="hint" th:if="${categories == null || categories.isEmpty()}">No categories yet — the product will be saved uncategorised.</div>
+    </div>
+    <div class="field">
+      <label for="imageUrl">Image URL (optional)</label>
+      <input id="imageUrl" th:field="*{imageUrl}" type="url" placeholder="https://…"/>
+      <div class="hint">Paste a stable image link, or upload a file below.</div>
+    </div>
+    <div class="field">
+      <label for="imageFile">Upload image (optional)</label>
+      <input id="imageFile" name="imageFile" type="file" accept="image/*"/>
+      <div class="hint">Stored via the project's Cloudinary integration.</div>
+    </div>
+    <button class="btn btn-primary" type="submit" th:text="${productForm.id != null ? 'Save changes' : 'Add product'}">Save</button>
+    <a class="btn btn-ghost" th:href="@{/admin/products}">Cancel</a>
+  </form>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

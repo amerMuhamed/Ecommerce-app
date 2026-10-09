@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "cart_item")
@@ -22,6 +23,7 @@ public class CartItem extends Auditable {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "cart_id")
     private Cart cart;

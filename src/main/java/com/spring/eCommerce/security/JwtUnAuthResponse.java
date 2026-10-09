@@ -21,11 +21,23 @@ public class JwtUnAuthResponse implements AuthenticationEntryPoint, Serializable
 
     private final ObjectMapper objectMapper;
 
+    private static boolean acceptsHtml(HttpServletRequest request) {
+        String accept = request.getHeader("Accept");
+        return accept != null && accept.contains("text/html");
+    }
+
     @Override
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException ex) throws IOException {
         log.warn("{} {} -> unauthorized: {}", request.getMethod(), request.getRequestURI(), ex.getClass().getSimpleName());
+
+        // Browser navigation to storefront pages should go to the login page;
+        // API clients keep the JSON 401 contract.
+        if (!request.getRequestURI().startsWith("/api/") && acceptsHtml(request)) {
+            response.sendRedirect(request.getContextPath() + "/login?required");
+            return;
+        }
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

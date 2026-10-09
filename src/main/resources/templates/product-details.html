@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head(${product.name})}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <p style="margin-top:20px"><a th:href="@{/shop}">← Back to shop</a></p>
+  <div th:if="${cartMessage}" class="alert alert-success" th:text="${cartMessage}"></div>
+  <div th:if="${cartError}" class="alert alert-error" th:text="${cartError}"></div>
+
+  <div class="details-grid">
+    <div class="details-media">
+      <img th:src="${product.images != null && !product.images.isEmpty() ? product.images[0].imageUrl : '/images/placeholder.svg'}"
+           th:alt="${product.name}"
+           onerror="this.onerror=null;this.src='/images/placeholder.svg'"/>
+    </div>
+    <div class="details-info">
+      <h1 th:text="${product.name}">Product</h1>
+      <p class="product-cat" th:if="${product.categories != null && !product.categories.isEmpty()}">
+        <span th:each="c, iter : ${product.categories}">
+          <a th:href="@{/shop(category=${c.id})}" th:text="${c.name}"></a><span th:if="${!iter.last}"> · </span>
+        </span>
+      </p>
+      <p class="price-big"><span th:text="${#numbers.formatDecimal(product.price, 1, 2)}">0.00</span> EGP</p>
+      <p>
+        <span class="badge-stock in-stock" th:if="${product.availableQuantity > 5}">In stock</span>
+        <span class="badge-stock low-stock" th:if="${product.availableQuantity <= 5 && product.availableQuantity > 0}"
+              th:text="'Only ' + ${product.availableQuantity} + ' left'"></span>
+        <span class="badge-stock out-stock" th:if="${product.availableQuantity <= 0}">Out of stock</span>
+      </p>
+      <p th:text="${product.description}">Description</p>
+
+      <div sec:authorize="isAuthenticated()">
+        <form th:action="@{/cart/add}" method="post" th:if="${product.availableQuantity > 0}">
+          <input type="hidden" name="productId" th:value="${product.id}"/>
+          <div class="qty-row">
+            <label for="qty"><strong>Quantity</strong></label>
+            <input id="qty" type="number" name="quantity" value="1" min="1"
+                   th:max="${product.availableQuantity}" required/>
+          </div>
+          <button class="btn btn-accent" type="submit">Add to Cart</button>
+        </form>
+        <div th:if="${product.availableQuantity <= 0}" class="alert alert-info">This item is currently out of stock.</div>
+      </div>
+      <div sec:authorize="!isAuthenticated()">
+        <div class="alert alert-info">Please <a th:href="@{/login}">log in</a> to add items to your cart.</div>
+      </div>
+
+      <ul class="meta-list">
+        <li><strong>Availability:</strong> <span th:text="${product.availableQuantity} + ' pieces'">stock</span></li>
+        <li><strong>Delivery:</strong> across Egypt · cash on delivery available</li>
+        <li><strong>Payment:</strong> secure checkout via Paymob</li>
+      </ul>
+    </div>
+  </div>
+
+  <section class="section" th:if="${related != null && !related.isEmpty()}">
+    <div class="section-head"><h2>You may also like</h2></div>
+    <div class="product-grid">
+      <div th:each="product : ${related}" th:insert="~{layout :: productCard}"></div>
+    </div>
+  </section>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

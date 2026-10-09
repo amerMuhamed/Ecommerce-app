@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Orders')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <h1 class="page-title">Orders</h1>
+  <nav class="admin-nav">
+    <a class="btn btn-ghost btn-small" th:href="@{/admin}">Dashboard</a>
+    <a class="btn btn-ghost btn-small" th:href="@{/admin/products}">Products</a>
+    <a class="btn btn-primary btn-small" th:href="@{/admin/orders}">Orders</a>
+  </nav>
+  <div th:if="${adminNotice}" class="alert alert-success" th:text="${adminNotice}"></div>
+  <div th:if="${adminError}" class="alert alert-error" th:text="${adminError}"></div>
+
+  <div class="table-wrap" th:if="${orders != null && !orders.isEmpty()}">
+    <table class="table">
+      <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th>Address</th><th></th></tr></thead>
+      <tbody>
+      <tr th:each="o : ${orders}">
+        <td th:text="'#' + ${o.id}"></td>
+        <td th:text="${o.appUser != null ? o.appUser.username : '—'}"></td>
+        <td><span class="status" th:classappend="${o.orderStatus}" th:text="${o.orderStatus}"></span></td>
+        <td><span th:text="${#numbers.formatDecimal(o.totalPrice, 1, 2)}"></span> EGP</td>
+        <td th:text="${o.shippingAddress}"></td>
+        <td><a th:href="@{/admin/orders/{id}(id=${o.id})}">View →</a></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="empty-state" th:if="${orders == null || orders.isEmpty()}">
+    <div class="big">✦</div>
+    <h2>No orders yet</h2>
+    <p>Orders placed by customers will appear here.</p>
+  </div>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

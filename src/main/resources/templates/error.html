@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Oops')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <div class="empty-state" style="margin-top:40px">
+    <div class="big">✦</div>
+    <h2>Oops!</h2>
+    <p th:text="${errorMessage}">Something went wrong.</p>
+    <a class="btn btn-primary" th:href="@{/}">Back to home</a>
+    <a class="btn btn-ghost" th:href="@{/shop}">Continue shopping</a>
+  </div>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

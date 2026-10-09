@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head('Shop')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<div class="container">
+  <h1 class="page-title">Shop baby essentials</h1>
+  <p class="page-sub" th:text="${total} + ' products · prices in EGP'">products</p>
+
+  <div th:if="${shopError}" class="alert alert-error" th:text="${shopError}"></div>
+
+  <form class="toolbar" method="get" th:action="@{/shop}">
+    <input type="search" name="q" placeholder="Search products…" th:value="${q}" aria-label="Search products"/>
+    <select name="category" aria-label="Filter by category">
+      <option value="">All categories</option>
+      <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"
+              th:selected="${selectedCategory != null && selectedCategory == c.id}"></option>
+    </select>
+    <select name="sort" aria-label="Sort products">
+      <option value="featured" th:selected="${sort == 'featured'}">Featured</option>
+      <option value="price-asc" th:selected="${sort == 'price-asc'}">Price: low to high</option>
+      <option value="price-desc" th:selected="${sort == 'price-desc'}">Price: high to low</option>
+      <option value="name-asc" th:selected="${sort == 'name-asc'}">Name: A–Z</option>
+      <option value="name-desc" th:selected="${sort == 'name-desc'}">Name: Z–A</option>
+    </select>
+    <button class="btn btn-primary btn-small" type="submit">Apply</button>
+  </form>
+
+  <div class="product-grid" th:if="${products != null && !products.isEmpty()}">
+    <div th:each="product : ${products}" th:insert="~{layout :: productCard}"></div>
+  </div>
+
+  <div class="empty-state" th:if="${products == null || products.isEmpty()}">
+    <div class="big">✦</div>
+    <h2>No products found</h2>
+    <p>Try a different search or category.</p>
+    <a class="btn btn-primary" th:href="@{/shop}">Clear filters</a>
+  </div>
+
+  <div class="pagination" th:if="${totalPages > 1}">
+    <a th:if="${page > 1}" th:href="@{/shop(q=${q}, category=${selectedCategory}, sort=${sort}, page=${page - 1})}">← Prev</a>
+    <span class="current" th:text="'Page ' + ${page} + ' of ' + ${totalPages}"></span>
+    <a th:if="${page < totalPages}" th:href="@{/shop(q=${q}, category=${selectedCategory}, sort=${sort}, page=${page + 1})}">Next →</a>
+  </div>
+</div>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

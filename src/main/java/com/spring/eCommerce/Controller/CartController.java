@@ -36,4 +36,22 @@ public class CartController {
                 new ApiResponse<>(true, "User cart cleared successfully", null)
         );
     }
+
+    @PatchMapping("/item/{productId}")
+    public ResponseEntity<ApiResponse<?>> updateItemQuantity(
+            @PathVariable Long productId,
+            @RequestParam int quantity) {
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Cart item updated successfully",
+                        cartService.updateItemQuantity(productId, quantity))
+        );
+    }
+
+    @DeleteMapping("/item/{productId}")
+    public ResponseEntity<ApiResponse<?>> removeItem(@PathVariable Long productId) {
+        cartService.removeItem(productId);
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Cart item removed successfully", null)
+        );
+    }
 }
