@@ -2,12 +2,19 @@ package com.spring.eCommerce.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Stock ({@code availableQuantity}) is changed only through the atomic updates in ProductRepo or an explicit
+ * admin edit. {@code @DynamicUpdate} keeps unrelated saves (name, images, deleted flag) from writing back a
+ * stock value that was read before a concurrent order changed it.
+ */
 @Entity
+@DynamicUpdate
 @Table(name = "product")
 @AllArgsConstructor
 @NoArgsConstructor

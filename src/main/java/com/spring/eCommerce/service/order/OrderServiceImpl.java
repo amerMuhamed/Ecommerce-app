@@ -6,12 +6,16 @@ import com.spring.eCommerce.entity.*;
 import com.spring.eCommerce.entity.enums.OrderStatus;
 import com.spring.eCommerce.exception.BusinessException;
 import com.spring.eCommerce.repository.OrderRepo;
+import com.spring.eCommerce.repository.ProductRepo;
 import com.spring.eCommerce.service.user.UserService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -19,8 +23,10 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepo orderRepo;
+    private final ProductRepo productRepo;
     private final UserService userService;
     private final OrderMapper orderMapper;
+    private final EntityManager entityManager;
 
     @Transactional
     @Override
@@ -36,20 +42,29 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         BigDecimal totalPrice = BigDecimal.ZERO;
 
-        for (CartItem cartItem : cart.getCartItems()) {
+        // Reserve in product-id order so concurrent orders with overlapping products lock rows in the same
+        // order (avoids deadlocks). Each reservation is an atomic conditional UPDATE; any failure throws and
+        // rolls back every reservation made so far together with the order.
+        List<CartItem> cartItems = cart.getCartItems().stream()
+                .sorted(Comparator.comparing(item -> item.getProduct().getId()))
+                .toList();
+
+        for (CartItem cartItem : cartItems) {
 
             int cartItemQty = cartItem.getQuantity();
             Product product = cartItem.getProduct();
             if (product.isDeleted()) {
                 throw new IllegalStateException("Product is no longer available: " + product.getName());
             }
-            int availableProductQty = product.getAvailableQuantity();
 
             if (cartItemQty <= 0) {
                 throw new IllegalStateException("Cart item quantity must be greater than zero.");
             }
 
-            if (cartItemQty > availableProductQty) {
+            if (!productRepo.reserveStock(product.getId(), cartItemQty)) {
+                if (!productRepo.existsByIdAndDeletedFalse(product.getId())) {
+                    throw new IllegalStateException("Product is no longer available: " + product.getName());
+                }
                 throw new IllegalStateException(
                         "Not enough quantity available for product: " + product.getName()
                 );
@@ -59,10 +74,6 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setProduct(product);
             orderItem.setQuantity(cartItemQty);
             orderItem.setPrice(product.getPrice());
-
-            product.setAvailableQuantity(
-                    availableProductQty - cartItemQty
-            );
 
             totalPrice = totalPrice.add(
                     product.getPrice().multiply(
@@ -105,6 +116,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponseDto cancelOrder(Long id) {
         Order order = getOwnedOrder(id);
+        // Re-read the order under a row lock: concurrent cancellations (customer or admin) and payment
+        // confirmation are serialized, so stock is restored at most once.
+        entityManager.refresh(order, LockModeType.PESSIMISTIC_WRITE);
 
         if (order.getOrderStatus() == OrderStatus.CANCELLED) {
             throw new BusinessException("Order is already cancelled.");
@@ -116,13 +130,8 @@ public class OrderServiceImpl implements OrderService {
             );
         }
 
-        // Restore stock
-        for (OrderItem orderItem : order.getOrderItems()) {
-            Product product = orderItem.getProduct();
-            product.setAvailableQuantity(
-                    product.getAvailableQuantity() + orderItem.getQuantity()
-            );
-        }
+        // Restore stock (atomic increments, product-id order).
+        productRepo.releaseStock(order.getOrderItems());
 
         order.setOrderStatus(OrderStatus.CANCELLED);
         return orderMapper.toDto(orderRepo.save(order));

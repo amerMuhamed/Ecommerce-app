@@ -15,6 +15,8 @@ import com.spring.eCommerce.repository.OrderRepo;
 import com.spring.eCommerce.repository.PaymentAttemptRepo;
 import com.spring.eCommerce.repository.PaymentRepo;
 import com.spring.eCommerce.repository.PaymentWebhookEventRepo;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,7 @@ public class PaymentWebhookService {
     private final OrderRepo orderRepo;
     private final PaymentMapper paymentMapper;
     private final PaymentGatewayRegistry gatewayRegistry;
+    private final EntityManager entityManager;
 
     /**
      * SUCCEEDED, REFUNDED and CANCELLED are settled: a late failure/pending/expiry can never overwrite them.
@@ -151,6 +154,9 @@ public class PaymentWebhookService {
     private String updateOrder(Payment payment, PaymentStatus newStatus) {
         Order order = payment.getOrder();
         if (newStatus == PaymentStatus.SUCCEEDED) {
+            // Fresh status under the order's row lock, so a concurrent cancellation (which returns stock)
+            // cannot be overwritten with CONFIRMED.
+            entityManager.refresh(order, LockModeType.PESSIMISTIC_WRITE);
             if (order.getOrderStatus() == OrderStatus.PENDING) {
                 order.setOrderStatus(OrderStatus.CONFIRMED);
                 orderRepo.save(order);

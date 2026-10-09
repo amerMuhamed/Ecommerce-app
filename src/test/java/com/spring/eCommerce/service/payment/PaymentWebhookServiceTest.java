@@ -57,7 +57,7 @@ class PaymentWebhookServiceTest {
         PaymentGatewayRegistry registry = new PaymentGatewayRegistry(List.of(gateway));
 
         service = new PaymentWebhookService(paymentRepo, attemptRepo, eventRepo, orderRepo,
-                Mappers.getMapper(PaymentMapper.class), registry);
+                Mappers.getMapper(PaymentMapper.class), registry, mock(jakarta.persistence.EntityManager.class));
 
         order = Order.builder().id(7L).orderStatus(OrderStatus.PENDING).build();
         payment = Payment.builder()

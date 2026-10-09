@@ -3,11 +3,12 @@ package com.spring.eCommerce.web;
 import com.spring.eCommerce.Mapper.OrderMapper;
 import com.spring.eCommerce.dto.order.OrderResponseDto;
 import com.spring.eCommerce.entity.Order;
-import com.spring.eCommerce.entity.OrderItem;
-import com.spring.eCommerce.entity.Product;
 import com.spring.eCommerce.entity.enums.OrderStatus;
 import com.spring.eCommerce.exception.BusinessException;
 import com.spring.eCommerce.repository.OrderRepo;
+import com.spring.eCommerce.repository.ProductRepo;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,8 @@ public class AdminOrderService {
 
     private final OrderRepo orderRepo;
     private final OrderMapper orderMapper;
+    private final ProductRepo productRepo;
+    private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
     public List<Order> findAll() {
@@ -54,16 +57,15 @@ public class AdminOrderService {
     @Transactional
     public Order changeStatus(Long id, OrderStatus next) {
         Order order = findById(id);
+        // Row lock + fresh status: serializes with customer cancellation and payment confirmation.
+        entityManager.refresh(order, LockModeType.PESSIMISTIC_WRITE);
         Set<OrderStatus> allowed = ALLOWED_TRANSITIONS.getOrDefault(order.getOrderStatus(), Set.of());
         if (!allowed.contains(next)) {
             throw new BusinessException(
                     "Cannot change order status from " + order.getOrderStatus() + " to " + next);
         }
         if (next == OrderStatus.CANCELLED && order.getOrderStatus() == OrderStatus.PENDING) {
-            for (OrderItem item : order.getOrderItems()) {
-                Product product = item.getProduct();
-                product.setAvailableQuantity(product.getAvailableQuantity() + item.getQuantity());
-            }
+            productRepo.releaseStock(order.getOrderItems());
         }
         order.setOrderStatus(next);
         return orderRepo.save(order);

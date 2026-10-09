@@ -1,6 +1,5 @@
 package com.spring.eCommerce.web;
 
-import com.spring.eCommerce.entity.AppUser;
 import com.spring.eCommerce.entity.Order;
 import com.spring.eCommerce.entity.enums.OrderStatus;
 import com.spring.eCommerce.exception.BusinessException;
@@ -15,7 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -31,6 +31,12 @@ class AdminOrderServiceTest {
 
     @Mock
     private com.spring.eCommerce.Mapper.OrderMapper orderMapper;
+
+    @Mock
+    private com.spring.eCommerce.repository.ProductRepo productRepo;
+
+    @Mock
+    private jakarta.persistence.EntityManager entityManager;
 
     @InjectMocks
     private AdminOrderService adminOrderService;
