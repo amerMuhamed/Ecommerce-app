@@ -37,6 +37,12 @@
           <div class="hint">Required for online card payment (Paymob).</div>
         </div>
         <div class="field">
+          <label for="email">Email</label>
+          <input id="email" th:field="*{email}" type="email" placeholder="you@example.com"/>
+          <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+          <div class="hint">Required for online card payment (Paymob) if your username is not an email.</div>
+        </div>
+        <div class="field">
           <label>Payment method</label>
           <label class="check-chip"><input type="radio" th:field="*{paymentMethod}" value="cod"/> Cash on delivery</label>
           <label class="check-chip"><input type="radio" th:field="*{paymentMethod}" value="paymob"/> Pay online (Paymob)</label>

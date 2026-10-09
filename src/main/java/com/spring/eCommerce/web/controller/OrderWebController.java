@@ -87,7 +87,7 @@ public class OrderWebController {
                 PaymentResponseDto payment = paymentService.initiatePayment(order.id(),
                         new PaymentInitiateRequest(PaymentProvider.PAYMOB,
                                 "web-" + order.id() + "-" + UUID.randomUUID(),
-                                form.getPhone(), null));
+                                form.getPhone(), form.getEmail()));
                 if (payment.checkoutUrl() != null && !payment.checkoutUrl().isBlank()) {
                     return "redirect:" + payment.checkoutUrl();
                 }
